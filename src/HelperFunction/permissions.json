@@ -1,0 +1,349 @@
+[
+  {
+    "title": "Users",
+    "value": "users",
+    "key": "users",
+    "children": [
+      {
+        "title": "Create Users",
+        "value": "users-create",
+        "key": "users-create"
+      },
+      {
+        "title": "Update Users",
+        "value": "users-update",
+        "key": "users-update"
+      },
+      {
+        "title": "Delete Users",
+        "value": "users-delete",
+        "key": "users-delete"
+      }
+    ]
+  },
+  {
+    "title": "Investment Security",
+    "value": "investment-security",
+    "key": "investment-security",
+    "children": [
+      {
+        "title": "Upload Datasets",
+        "value": "datasets-upload",
+        "key": "datasets-upload"
+      },
+      {
+        "title": "Upload Quarterly Stock",
+        "value": "quarterlyStock-upload",
+        "key": "quarterlyStock-upload"
+      },
+      {
+        "title": "Upload Crypto List",
+        "value": "quarterlyStock-upload",
+        "key": "quarterlyStock-upload"
+      }
+    ]
+  },
+  {
+    "title": "Store",
+    "value": "store",
+    "key": "store",
+    "children": [
+      {
+        "title": "Create Product",
+        "value": "product-create",
+        "key": "product-create"
+      },
+      {
+        "title": "Update Product",
+        "value": "product-update",
+        "key": "product-update"
+      },
+      {
+        "title": "Delete Product",
+        "value": "product-delete",
+        "key": "product-delete"
+      },
+      {
+        "title": "Create Category",
+        "value": "category-create",
+        "key": "category-create"
+      },
+      {
+        "title": "Update Category",
+        "value": "category-update",
+        "key": "category-update"
+      },
+      {
+        "title": "Delete Category",
+        "value": "category-delete",
+        "key": "category-delete"
+      },
+      {
+        "title": "Create Order",
+        "value": "order-create",
+        "key": "order-create"
+      },
+      {
+        "title": "Update Order",
+        "value": "order-update",
+        "key": "order-update"
+      },
+      {
+        "title": "Delete Order",
+        "value": "order-delete",
+        "key": "order-delete"
+      }
+    ]
+  },
+  {
+    "title": "Courses",
+    "value": "courses",
+    "key": "courses",
+    "children": [
+      {
+        "title": "Create Courses",
+        "value": "courses-create",
+        "key": "courses-create"
+      },
+      {
+        "title": "Update Courses",
+        "value": "courses-update",
+        "key": "courses-update"
+      },
+      {
+        "title": "Delete Courses",
+        "value": "courses-delete",
+        "key": "courses-delete"
+      }
+    ]
+  },
+  {
+    "title": "Contacts",
+    "value": "contacts",
+    "key": "contacts",
+    "children": [
+      {
+        "title": "Add Contact",
+        "value": "contacts-create",
+        "key": "contacts-create"
+      },
+      {
+        "title": "Update Contact",
+        "value": "contacts-update",
+        "key": "contacts-update"
+      },
+      {
+        "title": "Delete Contact",
+        "value": "contacts-delete",
+        "key": "contacts-delete"
+      }
+    ]
+  },
+  {
+    "title": "News Feed",
+    "value": "newsfeed",
+    "key": "newsfeed",
+    "children": [
+      {
+        "title": "Create News Feed",
+        "value": "newsfeed-create",
+        "key": "newsfeed-create"
+      },
+      {
+        "title": "Update News Feed",
+        "value": "newsfeed-update",
+        "key": "newsfeed-update"
+      },
+      {
+        "title": "Delete News Feed",
+        "value": "newsfeed-delete",
+        "key": "newsfeed-delete"
+      }
+    ]
+  },
+
+  {
+    "title": "Media",
+    "value": "media",
+    "key": "media",
+    "children": [
+      {
+        "title": "Upload Media",
+        "value": "media-create",
+        "key": "media-create"
+      },
+      {
+        "title": "Update Media",
+        "value": "media-update",
+        "key": "media-update"
+      },
+      {
+        "title": "Delete Media",
+        "value": "media-delete",
+        "key": "media-delete"
+      }
+    ]
+  },
+  {
+    "title": "Video",
+    "value": "video",
+    "key": "video",
+    "children": [
+      {
+        "title": "Upload Video",
+        "value": "video-create",
+        "key": "video-create"
+      },
+      {
+        "title": "Update Video",
+        "value": "video-update",
+        "key": "video-update"
+      },
+      {
+        "title": "Delete Video",
+        "value": "video-delete",
+        "key": "video-delete"
+      }
+    ]
+  },
+  {
+    "title": "Subscription",
+    "value": "subscription",
+    "key": "subscription",
+    "children": [
+      {
+        "title": "Create Subscription",
+        "value": "subscription-create",
+        "key": "subscription-create"
+      },
+      {
+        "title": "Update Subscription",
+        "value": "subscription-update",
+        "key": "subscription-update"
+      },
+      {
+        "title": "View Subscription",
+        "value": "subscription-read",
+        "key": "subscription-read"
+      },
+      {
+        "title": "Delete Subscription",
+        "value": "subscription-delete",
+        "key": "subscription-delete"
+      },
+      {
+        "title": "Create Plan",
+        "value": "plan-create",
+        "key": "plan-create"
+      },
+      {
+        "title": "Update Plan",
+        "value": "plan-update",
+        "key": "plan-update"
+      },
+      {
+        "title": "View Plan",
+        "value": "plan-read",
+        "key": "plan-read"
+      },
+      {
+        "title": "Delete Plan",
+        "value": "plan-delete",
+        "key": "plan-delete"
+      },
+      {
+        "title": "Create Subscription Product",
+        "value": "subscription-product-create",
+        "key": "subscription-product-create"
+      },
+      {
+        "title": "Update Subscription Product",
+        "value": "subscription-product-update",
+        "key": "subscription-product-update"
+      },
+      {
+        "title": "Delete Subscription Product",
+        "value": "subscription-product-delete",
+        "key": "subscription-product-delete"
+      }
+    ]
+  },
+  {
+    "title": "Settings",
+    "value": "setting",
+    "key": "setting",
+    "children": [
+      {
+        "title": "Update Setting",
+        "value": "setting-update",
+        "key": "setting-update"
+      },
+      {
+        "title": "View Setting",
+        "value": "setting-read",
+        "key": "setting-read"
+      }
+    ]
+  },
+  {
+    "title": "Roles",
+    "value": "role",
+    "key": "role",
+    "children": [
+      {
+        "title": "Create Role",
+        "value": "role-create",
+        "key": "role-create"
+      },
+      {
+        "title": "Update Role",
+        "value": "role-update",
+        "key": "role-update"
+      },
+      {
+        "title": "View Role",
+        "value": "role-read",
+        "key": "role-read"
+      },
+      {
+        "title": "Delete Role",
+        "value": "role-delete",
+        "key": "role-delete"
+      }
+    ]
+  },
+  {
+    "title": "Blocked Channels",
+    "value": "blockedChannel",
+    "key": "blockedChannel",
+    "children": [
+      {
+        "title": "Delete Blocked Channel",
+        "value": "blockedChannel-delete",
+        "key": "blockedChannel-delete"
+      }
+    ]
+  },
+  {
+    "title": "Course Categories",
+    "value": "course-category",
+    "key": "course-category",
+    "children": [
+      {
+        "title": "Delete Course Category",
+        "value": "course-category-delete",
+        "key": "course-category-delete"
+      },
+      {
+        "title": "Create Course Category",
+        "value": "course-category-create",
+        "key": "course-category-create"
+      },
+      {
+        "title": "Update Course Category",
+        "value": "course-category-update",
+        "key": "course-category-update"
+      }
+    ]
+  }
+]

@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  padding: 0px;
+  margin: 0px;
+  box-sizing: border-box;
+}
+
+/* Siderbar Border */
+.ant-menu-root {
+  border: none !important;
+}
+/* Siderbar Border */
+
+.ant-menu-item-icon {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0px;
+  opacity: 0px;
+}
+
+.ant-menu-item-selected .ant-menu-item-icon {
+  background: linear-gradient(180deg, #349800 0%, rgba(52, 152, 0, 0.85) 100%);
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0px;
+  border-radius: 5px;
+  opacity: 0px;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.ant-table-row .ant-table-cell {
+  border-bottom: none !important;
+  color: #aaaaaa !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding-left: 0 !important;
+}
+.ant-table-thead .ant-table-cell {
+  background: transparent !important;
+  color: #888888 !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  padding-left: 0 !important;
+}
+.ant-table-thead .ant-table-cell::before {
+  display: none !important;
+}
+.ant-table-wrapper .ant-table {
+  background: transparent !important;
+}
+.custom-label label {
+  color: rgba(255, 255, 255, 0.6); /* Light grey text color */
+  font-size: 0.9rem; /* Adjust font size */
+}
+
+/* input custom styling */
+.custom-input {
+  background-color: #000000; /* Black background */
+  color: white; /* White text */
+  border: none; /* Remove border */
+  border-radius: 6px; /* Rounded corners */
+  padding: 10px; /* Spacing inside the input */
+}
+
+.custom-input::placeholder {
+  color: rgba(255, 255, 255, 0.6); /* Light grey placeholder */
+}
+
+.custom-input:focus {
+  box-shadow: none; /* Remove focus outline */
+}
+
+/* Input Date Styling */
+input[type="date"].custom-date::-webkit-calendar-picker-indicator {
+  filter: invert(1); /* Makes the date icon white */
+}
+
+input[type="date"].custom-date::-moz-calendar-picker-indicator {
+  filter: invert(1); /* Makes the date icon white in Firefox */
+}
+/* Input Date Styling */
+
+/* Sidebar Menu Padding Left */
+:where(.css-dev-only-do-not-override-jz9e7j).ant-menu-light.ant-menu-inline
+  .ant-menu-item,
+:where(.css-dev-only-do-not-override-jz9e7j).ant-menu-light
+  > .ant-menu.ant-menu-inline
+  .ant-menu-item {
+  padding-left: 30px !important;
+}
+/* Sidebar Menu Padding Left */
+
+:where(.css-dev-only-do-not-override-jz9e7j).ant-menu-light.ant-menu-inline
+  .ant-menu-sub.ant-menu-inline,
+:where(.css-dev-only-do-not-override-jz9e7j).ant-menu-light
+  > .ant-menu.ant-menu-inline
+  .ant-menu-sub.ant-menu-inline {
+  background: none !important;
+}
+
+/* multi select styling */
+.css-gdwkqi-control {
+  background-color: #000000 !important;
+  border: none !important;
+}
+/* multi select styling */
