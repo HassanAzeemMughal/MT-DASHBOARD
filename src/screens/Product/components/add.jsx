@@ -155,7 +155,7 @@ const Add = () => {
         notification.error({
           message: "Error",
           description: response.message,
-          placement: "topRight", // Position of the notification
+          placement: "topRight",
         });
       }
     } catch (error) {
@@ -164,7 +164,7 @@ const Add = () => {
         message: "Failed to Add user",
         description:
           "There was an error creating the product. Please try again.",
-        placement: "topRight", // Position of the notification
+        placement: "topRight",
       });
     } finally {
       setLoading(false);
