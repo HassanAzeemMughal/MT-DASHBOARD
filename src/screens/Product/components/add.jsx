@@ -216,13 +216,12 @@ const Add = () => {
     { value: "#0000FF", label: "Blue" },
     { value: "#FFFF00", label: "Yellow" },
     { value: "#000000", label: "Black" },
-    // Add more color options here
   ];
 
   const handleColorChange = (selectedColors) => {
     setFormData((prevState) => ({
       ...prevState,
-      color: selectedColors.map((color) => color.value), // Store selected color values
+      color: selectedColors.map((color) => color.value),
     }));
   };
 
@@ -309,11 +308,6 @@ const Add = () => {
                   styles={customStyles} // Apply custom styles
                   error={errors.categories}
                 />
-                {/* {errors.categories && (
-                  <div className="invalid-feedback" style={{ color: "red" }}>
-                    {errors.categories}
-                  </div>
-                )} */}
               </Col>
               <Col xs={24} sm={12} md={8} lg={8}>
                 <SelectComponent
