@@ -1,84 +1,116 @@
-import { Button, Card, Input, Modal, notification, Spin, Table } from "antd";
-import React, { useEffect, useState } from "react";
+import {
+  Button,
+  Card,
+  Input,
+  Modal,
+  notification,
+  Pagination,
+  Spin,
+  Table,
+} from "antd";
+import React, { useCallback, useEffect, useState } from "react";
 import { IoIosSearch } from "react-icons/io";
 import { Link } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import UserColumn from "../../HelperFunction/ColumnData/UserColumn";
+import debounce from "lodash/debounce";
 
 const Index = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [userList, setUserList] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
-  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-  const [deletinguser, setDeletingUser] = useState(null);
-  const [filter, setFilter] = useState({
-    firstName: "",
-  });
 
-  const fetchData = async () => {
-    const params = {
-      page: currentPage,
-      limit,
-      name: filter.firstName ? filter.firstName.trim() : "",
-    };
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(null);
+  const [search, setSearch] = useState("");
+
+  const fetchData = async (currentPage = page, searchTerm = search) => {
+    setLoading(true);
+    setNotFound(false);
+
     try {
-      const response = await ApiService.get("/auth", params);
-      setUserList(response.users || []);
-      setTotalPages(response.totalPages || 1);
-    } catch (error) {
-      setIsNotfound(true);
-      console.error("Error fetching users:", error.message);
+      const params = {
+        page: currentPage,
+        limit,
+        name: searchTerm.trim(),
+      };
+      const res = await ApiService.get("/auth", params);
+
+      if (res?.users?.length > 0) {
+        setUsers(res.users);
+        setTotalPages(res.totalPages);
+      } else {
+        setUsers([]);
+        setNotFound(true);
+      }
+    } catch (err) {
+      notification.error({
+        message: "Error",
+        description: "Failed to fetch users.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, filter]);
+  }, [page]);
 
-  const updateFilter = (key, value) => {
-    setFilter((prevFilter) => ({
-      ...prevFilter,
-      [key]: value,
-    }));
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      setPage(1);
+      fetchData(1, value);
+    }, 500),
+    []
+  );
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    debouncedSearch(e.target.value);
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const handlePageChange = (current) => {
+    setPage(current);
   };
 
   const openDeleteModal = (user) => {
     setDeletingUser(user);
-    setIsDeleteModalVisible(true);
+    setDeleteModalVisible(true);
   };
 
   const handleDelete = async () => {
     try {
-      const response = await ApiService.del(
-        `/auth/user/delete/${deletinguser._id}`
-      );
-      if (response.success === "true") {
+      const res = await ApiService.del(`/auth/user/delete/${deletingUser._id}`);
+      if (res.success) {
         notification.success({
-          message: "Success",
-          description: response.message,
-          placement: "topRight",
+          message: "Deleted",
+          description: res.message || "User deleted successfully.",
         });
         fetchData();
+      } else {
+        notification.error({
+          message: "Failed",
+          description: res.message || "Failed to delete user.",
+        });
       }
-    } catch (error) {
+    } catch {
       notification.error({
-        message: "Failed to Delete user",
-        description: "There was an error deleting the user.",
-        placement: "topRight",
+        message: "Error",
+        description:
+          err?.response?.data?.message ||
+          "Failed to delete user due to server error.",
       });
     } finally {
-      setIsDeleteModalVisible(false);
+      setDeleteModalVisible(false);
       setDeletingUser(null);
     }
   };
 
-  const columns = UserColumn(openDeleteModal); // Use the Columns component to get the column definitions
+  const columns = UserColumn({ openDeleteModal });
 
   return (
     <div>
@@ -87,7 +119,8 @@ const Index = () => {
           <div className="mb-4 md:mb-0">
             <h1 className="font-normal text-xl leading-6">Users</h1>
             <p className="font-normal text-xs leading-4 text-text-800">
-              This is the description text that will go under the title header
+              View and manage all registered users of the system. Use the search
+              bar to find specific users or add a new one.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -105,8 +138,8 @@ const Index = () => {
                 name="search"
                 id="title"
                 className="flex-grow border-none outline-none bg-text-900 px-0 font-normal text-xs py-2 hover:bg-black"
-                value={filter.firstName}
-                onChange={(e) => updateFilter("firstName", e.target.value)}
+                value={search}
+                onChange={handleSearchChange}
               />
               <IoIosSearch size={14} className="text-[#FFFFFF80]" />
             </div>
@@ -121,40 +154,54 @@ const Index = () => {
               marginTop: "20px",
             }}
           >
-            {isLoading ? (
+            {loading ? (
               <div
                 className="flex justify-center items-center"
                 style={{ minHeight: "300px" }}
               >
                 <Spin size="large" />
               </div>
-            ) : (
+            ) : notFound ? (
               <div
-                className="table-container overflow-y-hidden"
-                style={{ overflowX: "auto" }}
+                className="flex justify-center items-center"
+                style={{ minHeight: "300px", color: "#fff" }}
               >
+                No users found
+              </div>
+            ) : (
+              <>
                 <Table
                   columns={columns}
-                  dataSource={userList}
+                  dataSource={users}
+                  rowKey="_id"
+                  pagination={false}
                   scroll={{ x: 1300 }}
-                  style={{ width: "100%" }}
                 />
-              </div>
+                <div className="flex justify-end mt-4">
+                  <Pagination
+                    current={page}
+                    pageSize={limit}
+                    total={totalPages * limit}
+                    onChange={handlePageChange}
+                    showSizeChanger={false}
+                  />
+                </div>
+              </>
             )}
           </Card>
         </div>
         <Modal
           title="Delete Confirmation"
-          open={isDeleteModalVisible}
+          open={deleteModalVisible}
           onOk={handleDelete}
-          onCancel={() => setIsDeleteModalVisible(false)}
+          onCancel={() => setDeleteModalVisible(false)}
           okText="Yes, Delete"
           cancelText="Cancel"
           okButtonProps={{ danger: true }}
         >
           <p>
             Are you sure you want to delete{" "}
-            <strong>{deletinguser?.firstName}</strong>?
+            <strong>{deletingUser?.firstName}</strong>?
           </p>
         </Modal>
       </div>

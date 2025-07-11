@@ -1,54 +1,81 @@
-import { Button, Card, Input, Modal, notification, Spin, Table } from "antd";
-import React, { useEffect, useState } from "react";
+import {
+  Button,
+  Card,
+  Input,
+  Modal,
+  notification,
+  Pagination,
+  Spin,
+  Table,
+} from "antd";
+import React, { useCallback, useEffect, useState } from "react";
 import { IoIosSearch } from "react-icons/io";
 import { Link } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import ProductColumn from "../../HelperFunction/ColumnData/ProductColumn";
 import LoaderOverlay from "../../components/LoaderOverlay/LoaderOverlay";
+import { debounce } from "lodash";
 
 const Index = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [productList, setProductList] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
+
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState(null);
-  const [filter, setFilter] = useState({
-    name: "",
-  });
+  const [search, setSearch] = useState("");
 
-  const fetchData = async () => {
-    setIsLoading(true);
+  const fetchData = async (currentPage = page, searchTerm = search) => {
+    setLoading(true);
+    setNotFound(false);
+
     const params = {
       page: currentPage,
       limit,
-      name: filter.name ? filter.name.trim() : "",
+      name: searchTerm.trim(),
     };
     try {
       const response = await ApiService.get("/products", params);
-      setProductList(response.products || []);
-      setTotalPages(response.totalPages || 1);
+
+      if (response?.products?.length > 0) {
+        setProductList(response.products);
+        setTotalPages(response.totalPages);
+      } else {
+        setProductList([]);
+        setNotFound(true);
+      }
     } catch (error) {
-      console.error("Error fetching product:", error.message);
+      notification.error({
+        message: "Error",
+        description: "Failed to fetch products.",
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, filter]);
+  }, [page]);
 
-  const updateFilter = (key, value) => {
-    setFilter((prevFilter) => ({
-      ...prevFilter,
-      [key]: value,
-    }));
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      setPage(1);
+      fetchData(1, value);
+    }, 500),
+    []
+  );
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    debouncedSearch(e.target.value);
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const handlePageChange = (current) => {
+    setPage(current);
   };
 
   const openDeleteModal = (product) => {
@@ -85,14 +112,13 @@ const Index = () => {
 
   return (
     <div>
-      {isLoading && <LoaderOverlay />}
-
       <div>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
           <div className="mb-4 md:mb-0">
             <h1 className="font-normal text-xl leading-6">Product</h1>
             <p className="font-normal text-xs leading-4 text-text-800">
-              This is the description text that will go under the title header
+              Manage and view all your products here. You can search, add, edit,
+              or delete products from the list below.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -110,8 +136,8 @@ const Index = () => {
                 name="search"
                 id="title"
                 className="flex-grow border-none outline-none bg-text-900 px-0 font-normal text-xs py-2 hover:bg-black"
-                value={filter.name}
-                onChange={(e) => updateFilter("name", e.target.value)}
+                value={search}
+                onChange={handleSearchChange}
               />
               <IoIosSearch size={14} className="text-[#FFFFFF80]" />
             </div>
@@ -126,23 +152,40 @@ const Index = () => {
               marginTop: "20px",
             }}
           >
-            <div
-              className="table-container overflow-y-hidden"
-              style={{ overflowX: "auto" }}
-            >
-              <Table
-                columns={columns}
-                dataSource={productList}
-                scroll={{ x: 1300 }}
-                style={{ width: "100%" }}
-                pagination={{
-                  current: currentPage,
-                  total: totalPages * limit,
-                  onChange: handlePageChange,
-                  pageSize: limit,
-                }}
-              />
-            </div>
+            {loading ? (
+              <div
+                className="flex justify-center items-center"
+                style={{ minHeight: "300px" }}
+              >
+                <Spin size="large" />
+              </div>
+            ) : notFound ? (
+              <div
+                className="flex justify-center items-center"
+                style={{ minHeight: "300px", color: "#fff" }}
+              >
+                No products found
+              </div>
+            ) : (
+              <>
+                <Table
+                  columns={columns}
+                  dataSource={productList}
+                  rowKey="_id"
+                  pagination={false}
+                  scroll={{ x: 1300 }}
+                />
+                <div className="flex justify-end mt-4">
+                  <Pagination
+                    current={page}
+                    pageSize={limit}
+                    total={totalPages * limit}
+                    onChange={handlePageChange}
+                    showSizeChanger={false}
+                  />
+                </div>
+              </>
+            )}
           </Card>
         </div>
         <Modal

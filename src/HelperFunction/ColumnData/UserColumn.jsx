@@ -1,22 +1,17 @@
 import { Button } from "antd";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { renderAvatar } from "../../Utils/helper";
 
 const UserColumn = ({ openDeleteModal }) => {
-  const navigate = useNavigate(); // Use the navigate hook here
+  const navigate = useNavigate();
 
   return [
     {
       title: "User",
       render: (record) => (
         <div className="flex items-center gap-2">
-          <div
-            className="h-[30px] w-[30px] rounded-full"
-            style={{
-              background:
-                "linear-gradient(180deg, #6B88A2 0%, rgba(107, 136, 162, 0.8) 100%)",
-            }}
-          ></div>
+          {renderAvatar(record.photo)}
           <div>
             <h1 className="text-[#FFFFFFBF] font-medium text-sm leading-4">
               {record.firstName} {record.lastName}
@@ -31,27 +26,42 @@ const UserColumn = ({ openDeleteModal }) => {
     },
     {
       title: "Role",
-      render: (record) => (
-        <div className="flex items-center gap-2">
-          <div>
-            <p className="text-[#FFFFFFBF] font-bold text-sm leading-4 pt-1">
-              {record.role?.name}
-            </p>
+      render: (record) => {
+        const roleName = record.role?.name;
+
+        return (
+          <div className="flex items-center gap-2">
+            <div>
+              <p className="text-[#FFFFFFBF] font-bold text-sm leading-4 pt-1">
+                {roleName || "— — —"}
+              </p>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
       key: "role",
     },
     {
       title: "Date of Birth",
       render: (record) => {
-        // Format the date
+        if (!record.dob) {
+          // agar dob null ya undefined ho to ye dikhao
+          return (
+            <div className="flex items-center gap-2">
+              <div>
+                <p className="text-[#FFFFFFBF] font-bold text-sm leading-4 pt-1">
+                  — — —
+                </p>
+              </div>
+            </div>
+          );
+        }
+
         const date = new Date(record.dob);
-        const day = date.getDate();
-        const month = date.getMonth() + 1; // JavaScript months are 0-indexed
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
         const year = date.getFullYear();
 
-        // Format the date as dd/mm/yyyy
         const formattedDate = `${day}/${month}/${year}`;
 
         return (

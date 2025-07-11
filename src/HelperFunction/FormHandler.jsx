@@ -1,41 +1,38 @@
 import { useState } from "react";
 
-const useFormHandler = (initialState = {}, errors, setErrors) => {
+/**
+ * A simple form handler hook.
+ *
+ * @param {Object} initialState - Initial form data.
+ * @param {Object} [errors] - Optional errors state.
+ * @param {Function} [setErrors] - Optional setErrors function.
+ */
+const useFormHandler = (
+  initialState = {},
+  errors = {},
+  setErrors = () => {}
+) => {
   const [formData, setFormData] = useState(initialState);
 
-  // Handle text input change
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-
-    // If the field is filled, remove the error
-    if (value && errors[name]) {
-      setErrors((prevErrors) => {
-        const updatedErrors = { ...prevErrors };
-        delete updatedErrors[name]; // Remove the specific error for this field
-        return updatedErrors;
+  const clearError = (name) => {
+    if (errors[name]) {
+      setErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
       });
     }
   };
 
-  // Handle select input change
-  const handleSelectChange = (name, value) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    clearError(name);
+  };
 
-    // If the value is selected and an error exists, clear the error
-    if (value && errors[name]) {
-      setErrors((prevErrors) => {
-        const updatedErrors = { ...prevErrors };
-        delete updatedErrors[name]; // Remove error for this field
-        return updatedErrors;
-      });
-    }
+  const handleSelectChange = (name, value) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    clearError(name);
   };
 
   return {

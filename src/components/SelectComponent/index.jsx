@@ -9,6 +9,7 @@ const MultiSelectComponent = ({
   onChange,
   value = [],
   multiple = false, // Add a multiple prop to enable multi-select
+  error,
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false); // State to track if dropdown is open
@@ -33,7 +34,11 @@ const MultiSelectComponent = ({
       <select
         id={name}
         name={name}
-        className="select-box block rounded px-2.5 pb-2.5 pt-5 w-full text-sm text-[#FFFFFFE5] bg-text-900 dark:bg-[#000000] border-0 border-b-2 border-b-[#000000] appearance-none focus:outline-none focus:ring-0 focus:border-[#000000] dark:focus:border-[#000000] peer"
+        className={`</div>select-box block rounded px-2.5 pb-2.5 pt-5 w-full text-sm text-[#FFFFFFE5] bg-text-900 dark:bg-[#000000] border-0 border-b-2 border-b-[#000000] appearance-none focus:outline-none focus:ring-0 focus:border-[#000000] dark:focus:border-[#000000] peer ${
+          error
+            ? "border-b-red-500 focus:border-red-500"
+            : "border-b-[#000000] focus:border-[#000000]"
+        }`}
         onClick={handleToggle}
         onBlur={() => setIsOpen(false)}
         onChange={handleChange} // Use the handleChange method here
@@ -65,6 +70,7 @@ const MultiSelectComponent = ({
           <BiChevronDown className="text-gray-500" size={30} />
         )}
       </div>
+      {error && <div className="text-xs text-red-500 mt-1 ml-1">{error}</div>}
     </div>
   );
 };

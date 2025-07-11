@@ -8,6 +8,7 @@ import { Link, useParams } from "react-router-dom";
 import ApiService from "../../../services/ApiService";
 import { FaSpinner } from "react-icons/fa";
 import useFormHandler from "../../../HelperFunction/FormHandler";
+import { renderImage } from "../../../Utils/helper";
 
 const Edit = () => {
   const backendPath = import.meta.env.VITE_BACKEND_URL;
@@ -41,8 +42,8 @@ const Edit = () => {
     if (id) {
       const fetchCategoryData = async () => {
         try {
-          const response = await ApiService.get(`/categories/${id}`);
-          if (response.success === "true") {
+          const response = await ApiService.get(`/categories/edit/${id}`);
+          if (response.success) {
             const category = response.category;
 
             setFormData({
@@ -114,13 +115,13 @@ const Edit = () => {
         `/categories/${id}`,
         formDataToSend
       );
-      if (response.success === "true") {
+      if (response.success) {
         notification.success({
           message: "Success",
           description: response.message,
           placement: "topRight",
         });
-      } else if (response.success === "false") {
+      } else {
         notification.error({
           message: "Error",
           description: response.message,
@@ -146,7 +147,7 @@ const Edit = () => {
     <div className="p-4">
       <div className="flex items-center gap-3">
         <Link
-          to={"/users/list"}
+          to={"/category/list"}
           className="bg-[#FFFFFF1A] px-[6px] py-2 rounded"
         >
           <IoArrowBack size={20} />
@@ -154,7 +155,8 @@ const Edit = () => {
         <div>
           <h1 className="font-normal text-xl leading-6">Update Category</h1>
           <p className="font-normal text-xs leading-4 text-text-800">
-            This is the description text that will go under the title header
+            Update the category details below. Make sure to fill in all required
+            fields before saving your changes.
           </p>
         </div>
       </div>
@@ -182,13 +184,13 @@ const Edit = () => {
                   label="Parent Category"
                   name="parentCategory"
                   selectInitial="Select Parent Category"
-                  value={formData.parentCategory} // Ensure this uses formData.parentCategory
+                  value={formData.parentCategory}
                   onChange={(value) =>
                     handleSelectChange("parentCategory", value)
-                  } // Pass "parentCategory" as the name
+                  }
                   options={parentCategories.map((cat) => ({
-                    value: cat._id, // Use cat._id as the ObjectId
-                    label: cat.title, // This will display the cat name in the dropdown
+                    value: cat._id,
+                    label: cat.title,
                   }))}
                 />
               </Col>
@@ -253,15 +255,15 @@ const Edit = () => {
                         alignItems: "center",
                       }}
                     >
-                      <img
-                        src={
-                          uploadedImages.length > 0
-                            ? uploadedImages[0]
-                            : `${backendPath}${formData.image}`
-                        }
-                        alt="Uploaded"
-                        className="w-full h-full object-cover"
-                      />
+                      {uploadedImages.length > 0 ? (
+                        <img
+                          src={uploadedImages[0]}
+                          alt="Uploaded"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        renderImage(formData.image)
+                      )}
 
                       <span
                         className="absolute top-0 right-0 m-1 border-0 rounded-full w-5 h-5 text-sm text-center cursor-pointer"

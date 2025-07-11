@@ -3,10 +3,15 @@ import { Col, Row, notification, Spin } from "antd";
 import { useNavigate } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import InputComponent from "../../components/InputComponent";
+import { useDispatch } from "react-redux";
+import { getReducer } from "../../redux/reducer";
 
 const Register = () => {
   const navigate = useNavigate();
   const [loader, setLoader] = useState(false);
+  const dispatch = useDispatch();
+  const setToken = getReducer("token");
+  const setRegisterData = getReducer("userInfo");
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -51,8 +56,10 @@ const Register = () => {
       const response = await ApiService.post("/auth/register", formData);
 
       if (response.success) {
-        localStorage.setItem("authToken", response.authToken);
-        localStorage.setItem("user", JSON.stringify(response.user));
+        // localStorage.setItem("authToken", response.authToken);
+        // localStorage.setItem("user", JSON.stringify(response.user));
+        dispatch(setToken(response?.authToken));
+        dispatch(setRegisterData(response.user));
 
         notification.success({
           message: "Registration Successful",
@@ -61,7 +68,7 @@ const Register = () => {
         });
 
         setFormData({ firstName: "", lastName: "", email: "", password: "" });
-        navigate("/login");
+        navigate("/dashboard");
       } else {
         notification.error({
           message: "Registration Failed",

@@ -8,8 +8,14 @@ import { Link, useParams } from "react-router-dom";
 import ApiService from "../../../services/ApiService";
 import { FaSpinner } from "react-icons/fa";
 import useFormHandler from "../../../HelperFunction/FormHandler";
+import { useDispatch, useSelector } from "react-redux";
+import { getReducer } from "../../../redux/reducer";
 
 const Edit = () => {
+  const loginUser = useSelector((state) => state.userInfo.data);
+  const dispatch = useDispatch();
+  const setToken = getReducer("token");
+  const setUpdateLoginData = getReducer("userInfo");
   const [loading, setLoading] = useState(false);
   const [roles, setRoles] = useState([]);
   const [userData, setUserData] = useState(null);
@@ -23,7 +29,7 @@ const Edit = () => {
       selectedRole: "",
       selectedStatus: "",
     });
-  const { id } = useParams(); // This will get the `id` from the URL params
+  const { id } = useParams();
 
   // Fetch the available roles
   useEffect(() => {
@@ -92,46 +98,66 @@ const Edit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const payload = {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      password: formData.password,
-      dob: formData.dob,
-      role: formData.selectedRole, // This should be the role ObjectId
-      status: formData.selectedStatus, // This can remain as a string value
-    };
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("firstName", formData.firstName);
+    formDataToSend.append("lastName", formData.lastName);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("password", formData.password);
+    formDataToSend.append("dob", formData.dob);
+    formDataToSend.append("role", formData.selectedRole);
+    formDataToSend.append("status", formData.selectedStatus);
+    if (formData.photo) {
+      formDataToSend.append("photo", formData.photo);
+    }
 
     try {
-      const response = await ApiService.put(`/auth/user/update/${id}`, payload);
-      if (response.success === "true") {
+      const response = await ApiService.put(
+        `/auth/user/update/${id}`,
+        formDataToSend
+      );
+      if (response.success) {
         notification.success({
           message: "Success",
-          description: response.message,
+          description: response.message || "User updated successfully",
           placement: "topRight",
         });
-        // Reset form fields after successful submission
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          password: "",
-          dob: "",
-          selectedRole: "",
-          selectedStatus: "",
-        });
-      } else if (response.success === "false") {
+
+        console.log("Updated user:", response);
+
+        // 🔷 Check if editing own profile
+        if (loginUser?._id === id) {
+          const updatedUser = {
+            ...loginUser,
+            firstName: response.user.firstName,
+            lastName: response.user.lastName,
+            email: response.user.email,
+            dob: response.user.dob,
+            role: response.user.role,
+            status: response.user.status,
+            photo: response.user.photo,
+          };
+
+          dispatch(setUpdateLoginData(updatedUser));
+
+          console.log("Updated user info in localStorage:", updatedUser);
+        }
+      } else {
+        const description = Array.isArray(response.errors)
+          ? response.errors.join(", ")
+          : response.message || "Update failed";
+
         notification.error({
           message: "Error",
-          description: response.message,
+          description,
           placement: "topRight",
         });
       }
     } catch (error) {
       console.error("Error adding user:", error.message);
       notification.error({
-        message: "Failed to Update User",
-        description: "There was an error updating the user. Please try again.",
+        message: "Failed to update user",
+        description: error.message || "An unexpected error occurred.",
         placement: "topRight",
       });
     } finally {
@@ -151,7 +177,8 @@ const Edit = () => {
         <div>
           <h1 className="font-normal text-xl leading-6">Update User</h1>
           <p className="font-normal text-xs leading-4 text-text-800">
-            This is the description text that will go under the title header
+            Update an existing user’s information, including personal details,
+            role, status, and profile image.
           </p>
         </div>
       </div>
@@ -231,12 +258,20 @@ const Edit = () => {
                   }))}
                 />
               </Col>
-            </Row>
-            {/* <Row gutter={[20, 20]} className="mt-7">
-              <Col xs={24}>
-                <TextAreaComponent label={"About User..."} />
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <InputComponent
+                  label="Profile Image"
+                  type="file"
+                  name="photo"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      photo: e.target.files[0],
+                    })
+                  }
+                />
               </Col>
-            </Row> */}
+            </Row>
             <div className="flex items-center justify-end mt-7">
               <button
                 type="submit"

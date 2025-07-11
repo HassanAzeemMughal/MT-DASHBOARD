@@ -10,9 +10,9 @@ import { FaSpinner } from "react-icons/fa";
 import useFormHandler from "../../../HelperFunction/FormHandler";
 
 const Add = () => {
-  const [loading, setLoading] = useState();
   const [parentCategories, setParentCategories] = useState([]);
   const [uploadedImages, setUploadedImages] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const { formData, handleInputChange, handleSelectChange, setFormData } =
     useFormHandler(
@@ -26,12 +26,10 @@ const Add = () => {
       setErrors
     );
 
-  // Fetch parent categories on initial load
   useEffect(() => {
     fetchParentCategories();
   }, []);
 
-  // Fetch parent categories from the server
   const fetchParentCategories = async () => {
     try {
       const response = await ApiService.get("/categories/parent");
@@ -41,55 +39,47 @@ const Add = () => {
     }
   };
 
-  // Handle image file selection
   const handleImageUpload = (event) => {
-    const files = event.target.files;
-    const fileArray = Array.from(files).map((file) =>
-      URL.createObjectURL(file)
-    );
-    setUploadedImages((prevImages) => [...prevImages, ...fileArray]);
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Clean up old URL
+    if (uploadedImages[0]) {
+      URL.revokeObjectURL(uploadedImages[0]);
+    }
+
+    const fileURL = URL.createObjectURL(file);
+    setUploadedImages([fileURL]);
   };
 
-  // Handle removing an image from the uploaded list
   const handleRemoveImage = (index) => {
     setUploadedImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
 
-  const validateForm = (formData) => {
-    const formErrors = {};
-
-    if (!formData.title) formErrors.title = "Title is required";
-    if (!formData.description)
-      formErrors.description = "Description is required";
-
-    return formErrors;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
-    // Use the validation function to get errors
-    const formErrors = validateForm(formData);
+    const newErrors = {};
+    if (!formData.title) newErrors.title = "Title is required";
+    if (!formData.status) newErrors.status = "Status is required";
 
-    // If there are errors, set the errors state and stop form submission
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
-      setLoading(false);
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
+    setLoading(true);
 
     const formDataToSend = new FormData();
     formDataToSend.append("title", formData.title);
     formDataToSend.append("status", formData.status);
     formDataToSend.append("description", formData.description);
-    formDataToSend.append("parent", formData.parentCategory); // Ensure you're sending the parent category as well
+    formDataToSend.append("parent", formData.parentCategory);
 
-    // Ensure you're sending the file under the correct field name "image"
     if (uploadedImages.length > 0) {
       const imageFile = document.getElementById("uploadInput").files[0];
       if (imageFile) {
-        formDataToSend.append("image", imageFile); // The field name "image" should match the multer setup
+        formDataToSend.append("image", imageFile);
       }
     }
 
@@ -102,30 +92,28 @@ const Add = () => {
             "Content-Type": "multipart/form-data",
           },
         }
-      ); // Assuming the endpoint for adding category is "/categories/add"
-      if (response.success === "true") {
+      );
+      if (response.success) {
         notification.success({
           message: "Success",
           description: response.message,
           placement: "topRight",
         });
 
-        // Fetch updated parent categories after adding the new category
         fetchParentCategories();
 
-        // Reset form fields after successful submission
         setFormData({
           title: "",
           status: "",
           description: "",
-          parentCategory: "", // Reset parent category
+          parentCategory: "",
         });
-        setUploadedImages([]); // Clear the uploaded images after successful submission
-      } else if (response.success === "false") {
+        setUploadedImages([]);
+      } else {
         notification.error({
           message: "Error",
           description: response.message,
-          placement: "topRight", // Position of the notification
+          placement: "topRight",
         });
       }
     } catch (error) {
@@ -156,7 +144,8 @@ const Add = () => {
         <div>
           <h1 className="font-normal text-xl leading-6">Add Category</h1>
           <p className="font-normal text-xs leading-4 text-text-800">
-            This is the description text that will go under the title header
+            Create and organize a new category to better structure your content
+            or products.
           </p>
         </div>
       </div>
@@ -177,12 +166,8 @@ const Add = () => {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
+                  error={errors.title}
                 />
-                {errors.title && (
-                  <div className="invalid-feedback" style={{ color: "red" }}>
-                    {errors.title}
-                  </div>
-                )}
               </Col>
               <Col xs={24} sm={12} md={12} lg={12}>
                 <SelectComponent
@@ -192,10 +177,10 @@ const Add = () => {
                   value={formData.parentCategory}
                   onChange={(value) =>
                     handleSelectChange("parentCategory", value)
-                  } // pass just the value (ObjectId)
+                  }
                   options={parentCategories.map((cat) => ({
-                    value: cat._id, // Use cat._id as the ObjectId
-                    label: cat.title, // This will display the cat name in the dropdown
+                    value: cat._id,
+                    label: cat.title,
                   }))}
                 />
               </Col>
@@ -205,13 +190,12 @@ const Add = () => {
                   name="status"
                   selectInitial="Select Status"
                   value={formData.status}
-                  onChange={
-                    (value) => handleSelectChange("status", value) // pass just the value
-                  }
+                  onChange={(value) => handleSelectChange("status", value)}
                   options={[
                     { value: "active", label: "Active" },
                     { value: "inactive", label: "Inactive" },
                   ]}
+                  error={errors.status}
                 />
               </Col>
               <Col xs={24} sm={12} md={12} lg={12}>
@@ -222,11 +206,6 @@ const Add = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                 />
-                {errors.description && (
-                  <div className="invalid-feedback" style={{ color: "red" }}>
-                    {errors.description}
-                  </div>
-                )}
               </Col>
               <Col xs={24} sm={12} md={12} lg={12}>
                 <div className="card-body">
@@ -249,7 +228,7 @@ const Add = () => {
                       accept="image/*"
                       className="hidden"
                       onChange={handleImageUpload}
-                      multiple={false} // Ensures only one image can be selected
+                      multiple={false}
                     />
                   </div>
                   <div className="uploaded-images mt-4 flex flex-wrap gap-3">

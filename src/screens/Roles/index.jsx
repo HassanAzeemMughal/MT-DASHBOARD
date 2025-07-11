@@ -1,80 +1,118 @@
-import { Button, Card, Input, Modal, notification, Spin, Table } from "antd";
-import React, { useEffect, useState } from "react";
+import {
+  Button,
+  Card,
+  Input,
+  Modal,
+  notification,
+  Pagination,
+  Spin,
+  Table,
+} from "antd";
+import React, { useCallback, useEffect, useState } from "react";
 import { IoIosSearch } from "react-icons/io";
 import { Link } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import RolesColumn from "../../HelperFunction/ColumnData/RolesColumn";
+import { debounce } from "lodash";
+
+const PAGE_SIZE = 10;
 
 const Index = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [rolesList, setRolesList] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const [roles, setRoles] = useState([]);
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [limit] = useState(10);
-  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-  const [deletingroles, setDeletingRoles] = useState(null);
-  const [filter, setFilter] = useState({
-    name: "",
-  });
 
-  const fetchData = async () => {
-    const params = {
-      page: currentPage,
-      limit,
-      name: filter.name ? filter.name.trim() : "",
-    };
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState(null);
+  const [search, setSearch] = useState("");
+
+  const fetchRoles = async ({ page = 1, search = "" } = {}) => {
+    setLoading(true);
+    setNotFound(false);
     try {
-      const response = await ApiService.get("/roles", params);
-      setRolesList(response.roles || []);
-      setTotalPages(response.totalPages || 1);
-    } catch (error) {
-      setIsNotfound(true);
-      console.error("Error fetching roles:", error.message);
+      const params = { page, limit: PAGE_SIZE, name: search.trim() };
+      const res = await ApiService.get("/roles", params);
+
+      if (res?.roles?.length) {
+        setRoles(res.roles);
+        setTotalPages(res.totalPages ?? 1);
+      } else {
+        setRoles([]);
+        setNotFound(true);
+      }
+    } catch {
+      notification.error({
+        message: "Error",
+        description: "Failed to fetch roles.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
-  }, [currentPage, filter]);
+    fetchRoles({ page, search });
+  }, [page]);
 
-  const updateFilter = (key, value) => {
-    setFilter((prevFilter) => ({
-      ...prevFilter,
-      [key]: value,
-    }));
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      setPage(1);
+      fetchRoles({ page: 1, search: value });
+    }, 500),
+    []
+  );
+
+  useEffect(() => {
+    return () => debouncedSearch.cancel();
+  }, [debouncedSearch]);
+
+  const handleSearchChange = (e) => {
+    const { value } = e.target;
+    setSearch(value);
+    debouncedSearch(value);
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+  const handlePageChange = (current) => setPage(current);
 
   const openDeleteModal = (role) => {
-    setDeletingRoles(role);
-    setIsDeleteModalVisible(true);
+    setRoleToDelete(role);
+    setDeleteModalVisible(true);
   };
 
   const handleDelete = async () => {
     try {
       const response = await ApiService.del(
-        `/roles/delete/${deletingroles._id}`
+        `/roles/delete/${roleToDelete._id}`
       );
-      if (response.success === "true") {
+
+      if (response.success) {
         notification.success({
           message: "Success",
           description: response.message,
           placement: "topRight",
         });
-        fetchData();
+        fetchRoles();
+      } else {
+        notification.error({
+          message: "Failed to delete role",
+          description: response.message || "The role could not be deleted.",
+          placement: "topRight",
+        });
       }
     } catch (error) {
       notification.error({
-        message: "Failed to delete roles",
-        description: "There was an error deleting the roles.",
+        message: "Error",
+        description:
+          error?.response?.data?.message ||
+          error.message ||
+          "An unexpected error occurred.",
         placement: "topRight",
       });
     } finally {
-      setIsDeleteModalVisible(false);
-      setDeletingRoles(null);
+      setDeleteModalVisible(false);
+      setRoleToDelete(null);
     }
   };
 
@@ -87,7 +125,9 @@ const Index = () => {
           <div className="mb-4 md:mb-0">
             <h1 className="font-normal text-xl leading-6">Roles</h1>
             <p className="font-normal text-xs leading-4 text-text-800">
-              This is the description text that will go under the title header
+              View, search, and manage the list of roles in the system. You can
+              add new roles, delete existing ones, or modify permissions as
+              needed.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -105,8 +145,8 @@ const Index = () => {
                 name="search"
                 id="title"
                 className="flex-grow border-none outline-none bg-text-900 px-0 font-normal text-xs py-2 hover:bg-black"
-                value={filter.name}
-                onChange={(e) => updateFilter("name", e.target.value)}
+                value={search}
+                onChange={handleSearchChange}
               />
               <IoIosSearch size={14} className="text-[#FFFFFF80]" />
             </div>
@@ -121,40 +161,54 @@ const Index = () => {
               marginTop: "20px",
             }}
           >
-            {isLoading ? (
+            {loading ? (
               <div
                 className="flex justify-center items-center"
                 style={{ minHeight: "300px" }}
               >
                 <Spin size="large" />
               </div>
-            ) : (
+            ) : notFound ? (
               <div
-                className="table-container overflow-y-hidden"
-                style={{ overflowX: "auto" }}
+                className="flex justify-center items-center"
+                style={{ minHeight: "300px", color: "#fff" }}
               >
+                No roles found
+              </div>
+            ) : (
+              <>
                 <Table
                   columns={columns}
-                  dataSource={rolesList}
+                  dataSource={roles}
+                  rowKey="_id"
+                  pagination={false}
                   scroll={{ x: 1300 }}
-                  style={{ width: "100%" }}
                 />
-              </div>
+                <div className="flex justify-end my-4">
+                  <Pagination
+                    current={page}
+                    pageSize={PAGE_SIZE}
+                    total={totalPages * PAGE_SIZE}
+                    onChange={handlePageChange}
+                    showSizeChanger={false}
+                  />
+                </div>
+              </>
             )}
           </Card>
         </div>
         <Modal
           title="Delete Confirmation"
-          open={isDeleteModalVisible}
+          open={deleteModalVisible}
           onOk={handleDelete}
-          onCancel={() => setIsDeleteModalVisible(false)}
+          onCancel={() => setDeleteModalVisible(false)}
           okText="Yes, Delete"
           cancelText="Cancel"
           okButtonProps={{ danger: true }}
         >
           <p>
             Are you sure you want to delete{" "}
-            <strong>{deletingroles?.name}</strong>?
+            <strong>{roleToDelete?.name}</strong>?
           </p>
         </Modal>
       </div>

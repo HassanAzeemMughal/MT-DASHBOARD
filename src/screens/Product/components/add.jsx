@@ -13,7 +13,7 @@ import useFormHandler from "../../../HelperFunction/FormHandler";
 const Add = () => {
   const [loading, setLoading] = useState();
   const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
+  // const [brands, setBrands] = useState([]);
   const [errors, setErrors] = useState({});
   const [uploadedImages, setUploadedImages] = useState([]); // For backend
   const [previewImages, setPreviewImages] = useState([]); // For preview
@@ -29,7 +29,7 @@ const Add = () => {
         deliveryTime: "",
         stock: "",
         description: "",
-        brands: [],
+        // brands: [],
         status: "",
         categories: [],
       },
@@ -44,8 +44,8 @@ const Add = () => {
     };
     try {
       const categoryRes = await ApiService.get("/categories", params);
-      const brandsRes = await ApiService.get("/brands", params);
-      setBrands(brandsRes.brands);
+      // const brandsRes = await ApiService.get("/brands", params);
+      // setBrands(brandsRes.brands);
       setCategories(
         (categoryRes.categories || []).map((category) => ({
           label: category.title,
@@ -84,11 +84,10 @@ const Add = () => {
 
     if (!formData.name) formErrors.name = "Name is required";
     if (!formData.price) formErrors.price = "Price is required";
-    if (!formData.color) formErrors.color = "Color is required";
     if (!formData.size) formErrors.size = "Size is required";
     if (!formData.deliveryTime)
       formErrors.deliveryTime = "Delivery Time is required";
-    if (!formData.stock) formErrors.stock = "Stock status is required";
+    if (!formData.stock) formErrors.stock = "Stock is required";
     if (!formData.status) formErrors.status = "Status is required";
     if (!formData.categories) formErrors.categories = "Category is required";
 
@@ -117,7 +116,7 @@ const Add = () => {
     formDataToSend.append("deliveryTime", formData.deliveryTime);
     formDataToSend.append("stock", formData.stock);
     formDataToSend.append("description", formData.description);
-    formDataToSend.append("brands", formData.brands);
+    // formDataToSend.append("brands", formData.brands);
     formDataToSend.append("status", formData.status);
     formData.categories.forEach((category) => {
       formDataToSend.append("categories[]", category);
@@ -240,7 +239,8 @@ const Add = () => {
         <div>
           <h1 className="font-normal text-xl leading-6">Add Product</h1>
           <p className="font-normal text-xs leading-4 text-text-800">
-            This is the description text that will go under the title header
+            Fill in the details below to add a new product to your store
+            inventory.
           </p>
         </div>
       </div>
@@ -261,12 +261,8 @@ const Add = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
+                  error={errors.name}
                 />
-                {errors.name && (
-                  <div className="invalid-feedback" style={{ color: "red" }}>
-                    {errors.name}
-                  </div>
-                )}
               </Col>
               <Col xs={24} sm={12} md={8} lg={8}>
                 <InputComponent
@@ -275,12 +271,8 @@ const Add = () => {
                   name="price"
                   value={formData.price}
                   onChange={handleInputChange}
+                  error={errors.price}
                 />
-                {errors.price && (
-                  <div className="invalid-feedback" style={{ color: "red" }}>
-                    {errors.price}
-                  </div>
-                )}
               </Col>
               <Col xs={24} sm={12} md={8} lg={8}>
                 <InputComponent
@@ -302,13 +294,8 @@ const Add = () => {
                   )}
                   onChange={handleColorChange}
                   placeholder="Select Color"
-                  styles={customStyles} // Apply custom styles
+                  styles={customStyles}
                 />
-                {errors.color && (
-                  <div className="invalid-feedback" style={{ color: "red" }}>
-                    {errors.color}
-                  </div>
-                )}
               </Col>
               <Col xs={24} sm={12} md={8} lg={8}>
                 <Select
@@ -321,12 +308,13 @@ const Add = () => {
                   onChange={handleCategoryChange} // Handle changes
                   placeholder="Select Categories"
                   styles={customStyles} // Apply custom styles
+                  error={errors.categories}
                 />
-                {errors.categories && (
+                {/* {errors.categories && (
                   <div className="invalid-feedback" style={{ color: "red" }}>
                     {errors.categories}
                   </div>
-                )}
+                )} */}
               </Col>
               <Col xs={24} sm={12} md={8} lg={8}>
                 <SelectComponent
@@ -342,12 +330,8 @@ const Add = () => {
                     { value: "medium", label: "Medium" },
                     { value: "large", label: "Large" },
                   ]}
+                  error={errors.size}
                 />
-                {errors.size && (
-                  <div className="invalid-feedback" style={{ color: "red" }}>
-                    {errors.size}
-                  </div>
-                )}
               </Col>
               <Col xs={24} sm={12} md={8} lg={8}>
                 <SelectComponent
@@ -363,12 +347,8 @@ const Add = () => {
                     { value: "1-5", label: "1 - 5" },
                     { value: "1-7", label: "1 - 7" },
                   ]}
+                  error={errors.deliveryTime}
                 />
-                {errors.deliveryTime && (
-                  <div className="invalid-feedback" style={{ color: "red" }}>
-                    {errors.deliveryTime}
-                  </div>
-                )}
               </Col>
               <Col xs={24} sm={12} md={8} lg={8}>
                 <SelectComponent
@@ -381,14 +361,24 @@ const Add = () => {
                     { value: "in_stock", label: "In Stock" },
                     { value: "out-of-stock", label: "Out Of Stock" },
                   ]}
+                  error={errors.stock}
                 />
-                {errors.stock && (
-                  <div className="invalid-feedback" style={{ color: "red" }}>
-                    {errors.stock}
-                  </div>
-                )}
               </Col>
               <Col xs={24} sm={12} md={8} lg={8}>
+                <SelectComponent
+                  label="Status"
+                  name="status"
+                  selectInitial="Select status"
+                  value={formData.status}
+                  onChange={(value) => handleSelectChange("status", value)}
+                  options={[
+                    { value: "active", label: "Active" },
+                    { value: "inactive", label: "In Active" },
+                  ]}
+                  error={errors.status}
+                />
+              </Col>
+              {/* <Col xs={24} sm={12} md={8} lg={8}>
                 <SelectComponent
                   label="Brand"
                   name="brands"
@@ -399,6 +389,15 @@ const Add = () => {
                     value: brand._id,
                     label: brand.name,
                   }))}
+                />
+              </Col> */}
+              <Col xs={24} sm={12} md={8} lg={8}>
+                <TextAreaComponent
+                  className="h-[140px]"
+                  name="description"
+                  label={"About User..."}
+                  value={formData.description}
+                  onChange={handleInputChange}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={8}>
@@ -457,33 +456,6 @@ const Add = () => {
                     ))}
                   </div>
                 </div>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={8}>
-                <TextAreaComponent
-                  className="h-[140px]"
-                  name="description"
-                  label={"About User..."}
-                  value={formData.description}
-                  onChange={handleInputChange}
-                />
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={8}>
-                <SelectComponent
-                  label="Status"
-                  name="status"
-                  selectInitial="Select status"
-                  value={formData.status}
-                  onChange={(value) => handleSelectChange("status", value)}
-                  options={[
-                    { value: "active", label: "Active" },
-                    { value: "inactive", label: "In Active" },
-                  ]}
-                />
-                {errors.status && (
-                  <div className="invalid-feedback" style={{ color: "red" }}>
-                    {errors.status}
-                  </div>
-                )}
               </Col>
             </Row>
             <div className="flex items-center justify-end mt-7">

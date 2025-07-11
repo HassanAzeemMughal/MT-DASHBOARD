@@ -1,15 +1,19 @@
 import React, { useEffect } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import AppLayout from "../components/layout";
+import { useSelector } from "react-redux";
 const Protected = () => {
-  const isAuthenticated = true;
+  const location = useLocation();
 
-  return isAuthenticated ? (
+  const token = useSelector((state) => state.token.data);
+  if (!token) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return (
     <AppLayout>
       <Outlet />
     </AppLayout>
-  ) : (
-    <Navigate to="/login" />
   );
 };
 

@@ -10,59 +10,55 @@ import { FaSpinner } from "react-icons/fa";
 import useFormHandler from "../../../HelperFunction/FormHandler";
 
 const Add = () => {
-  const [loading, setLoading] = useState();
+  const [loading, setLoading] = useState(false);
   const [roles, setRoles] = useState([]);
-  // const [imagePreview, setImagePreview] = useState(null);
-  const { formData, handleInputChange, handleSelectChange, setFormData } =
-    useFormHandler({
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      dob: "",
-      selectedRole: "",
-      selectedStatus: "",
-      // photo: null, // added field for photo
-    });
+  const [errors, setErrors] = useState({});
 
+  const { formData, handleInputChange, handleSelectChange, setFormData } =
+    useFormHandler(
+      {
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        dob: "",
+        selectedRole: "",
+        selectedStatus: "",
+        photo: "",
+      },
+      errors,
+      setErrors
+    );
   useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const response = await ApiService.get("/roles");
-        setRoles(response.roles);
-      } catch (error) {
-        console.error("Error fetching roles", error);
+    ApiService.get("/roles")
+      .then((response) => setRoles(response.roles || []))
+      .catch(() => {
         notification.error({
           message: "Failed to load roles",
           description: "There was an error loading roles. Please try again.",
-          placement: "topRight",
         });
-      }
-    };
-    fetchRoles();
+      });
   }, []);
-
-  // Generic change handler
-
-  // Handle file input change (image preview)
-  // const handleFileChange = (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       photo: file, // Set the selected file in formData
-  //     }));
-
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       setImagePreview(reader.result); // Set preview URL
-  //     };
-  //     reader.readAsDataURL(file); // Read the file and create a data URL
-  //   }
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // basic validation
+    const newErrors = {};
+    if (!formData.firstName) newErrors.firstName = "First name is required";
+    if (!formData.lastName) newErrors.lastName = "Last name is required";
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.password) newErrors.password = "Password is required";
+    if (!formData.dob) newErrors.dob = "Date of Birth is required";
+    if (!formData.selectedRole) newErrors.selectedRole = "Role is required";
+    if (!formData.selectedStatus)
+      newErrors.selectedStatus = "Status is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
 
     const formDataToSend = new FormData();
@@ -74,19 +70,22 @@ const Add = () => {
     formDataToSend.append("role", formData.selectedRole);
     formDataToSend.append("status", formData.selectedStatus);
 
-    // if (formData.photo) {
-    //   formDataToSend.append("photo", formData.photo); // The file is appended here
-    // }
+    if (formData.photo) {
+      formDataToSend.append("photo", formData.photo);
+    }
 
     try {
-      const response = await ApiService.post("/auth/user/add", formDataToSend);
-      if (response.success === "true") {
+      const response = await ApiService.post("/auth/user/add", formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      if (response.success) {
         notification.success({
           message: "Success",
           description: response.message,
           placement: "topRight",
         });
-        // Reset form fields after successful submission
         setFormData({
           firstName: "",
           lastName: "",
@@ -95,14 +94,13 @@ const Add = () => {
           dob: "",
           selectedRole: "",
           selectedStatus: "",
-          // photo: null,
+          photo: null,
         });
-        setImagePreview(null); // Reset preview after submission
-      } else if (response.success === "false") {
+      } else {
         notification.error({
           message: "Error",
           description: response.message,
-          placement: "topRight", // Position of the notification
+          placement: "topRight",
         });
       }
     } catch (error) {
@@ -129,7 +127,8 @@ const Add = () => {
         <div>
           <h1 className="font-normal text-xl leading-6">Add User</h1>
           <p className="font-normal text-xs leading-4 text-text-800">
-            This is the description text that will go under the title header
+            Use this form to create a new user account. Make sure to enter
+            accurate information for proper access and role assignment.
           </p>
         </div>
       </div>
@@ -150,6 +149,7 @@ const Add = () => {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
+                  error={errors.firstName}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -159,6 +159,7 @@ const Add = () => {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
+                  error={errors.lastName}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -168,6 +169,7 @@ const Add = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
+                  error={errors.email}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -177,26 +179,9 @@ const Add = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
+                  error={errors.password}
                 />
               </Col>
-              {/* <Col xs={24} sm={12} md={8} lg={6}>
-                <InputComponent
-                  label="Photo"
-                  type={"file"}
-                  name="photo"
-                  onChange={handleFileChange} // Corrected handler
-                />
-                {imagePreview && (
-                  <div className="mt-3">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      width={100}
-                      height={100}
-                    />
-                  </div>
-                )}
-              </Col> */}
 
               <Col xs={24} sm={12} md={8} lg={6}>
                 <InputComponent
@@ -205,6 +190,7 @@ const Add = () => {
                   name="dob"
                   value={formData.dob}
                   onChange={handleInputChange}
+                  error={errors.dob}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -213,13 +199,14 @@ const Add = () => {
                   name="status"
                   selectInitial="Select Status"
                   value={formData.selectedStatus}
-                  onChange={
-                    (value) => handleSelectChange("selectedStatus", value) // pass just the value
+                  onChange={(value) =>
+                    handleSelectChange("selectedStatus", value)
                   }
                   options={[
                     { value: "active", label: "Active" },
                     { value: "inactive", label: "Inactive" },
                   ]}
+                  error={errors.selectedStatus}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
@@ -227,7 +214,7 @@ const Add = () => {
                   label="Role"
                   name="roles"
                   selectInitial="Select Role"
-                  value={formData.selectedRole} // This should hold the selected role id
+                  value={formData.selectedRole}
                   onChange={(value) =>
                     handleSelectChange("selectedRole", value)
                   } // pass just the value (ObjectId)
@@ -235,29 +222,27 @@ const Add = () => {
                     value: role._id, // Use role._id as the ObjectId
                     label: role.name, // This will display the role name in the dropdown
                   }))}
+                  error={errors.selectedRole}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <InputComponent
+                  label="Profile Image"
+                  type="file"
+                  name="photo"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      photo: e.target.files[0],
+                    })
+                  }
                 />
               </Col>
             </Row>
-            {/* <Row gutter={[20, 20]} className="mt-7">
-              <Col xs={24}>
-                <TextAreaComponent label={"About User..."} />
-              </Col>
-            </Row> */}
             <div className="flex items-center justify-end mt-7">
-              {/* <Link
-                loading={loading}
-                className="flex items-center justify-center w-[250px] h-[50px] rounded text-text-900 font-semibold text-[14px] leading-4 hover:bg-black hover:border-black hover:text-black"
-                style={{
-                  background:
-                    "linear-gradient(225.2deg, #FFC700 0.18%, #FF5C00 99.82%)",
-                  border: "1px solid transparent",
-                }}
-              >
-                Submit
-              </Link> */}
               <button
                 type="submit"
-                disabled={loading} // Disable the button while loading
+                disabled={loading}
                 className="flex items-center justify-center w-[250px] h-[50px] rounded text-text-900 font-semibold text-[14px] leading-4 hover:bg-black hover:border-black hover:text-black"
                 style={{
                   background:
@@ -265,12 +250,12 @@ const Add = () => {
                   border: "1px solid transparent",
                 }}
               >
-                {loading ? (
+                {loading && (
                   <FaSpinner
                     className="animate-spin"
                     style={{ marginRight: "6px" }}
                   />
-                ) : null}{" "}
+                )}
                 Submit
               </button>
             </div>

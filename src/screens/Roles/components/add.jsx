@@ -11,15 +11,26 @@ import useFormHandler from "../../../HelperFunction/FormHandler";
 import permissionslist from "../../../HelperFunction/permissions.json";
 
 const Add = () => {
-  const [loading, setLoading] = useState();
-  const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const [selectedPermissions, setSelectedPermissions] = useState([]);
-  const { formData, handleInputChange, setFormData } = useFormHandler({
-    name: "",
-  });
+  const { formData, handleInputChange, setFormData } = useFormHandler(
+    {
+      name: "",
+    },
+    errors,
+    setErrors
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const newErrors = {};
+    if (!formData.name) newErrors.name = "Role name is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
     setLoading(true);
 
     const payload = {
@@ -35,26 +46,23 @@ const Add = () => {
           description: response.message,
           placement: "topRight",
         });
-        // Reset form fields after successful submission
-        setFormData({
-          name: "",
-        });
-        setSelectedPermissions("");
+        // Reset form
+        setFormData({ name: "" });
+        setSelectedPermissions([]);
+        setErrors({});
       } else if (response.success === "false") {
         notification.error({
           message: "Error",
           description: response.message,
-          placement: "topRight", // Position of the notification
+          placement: "topRight",
         });
       }
     } catch (error) {
-      console.error("Error adding user:", error.message);
-      // Displaying dynamic error messages based on error type
       let errorMessage =
         "An unexpected error occurred. Please try again later.";
 
-      if (error.response && error.response.data) {
-        errorMessage = error.response.data.message || errorMessage;
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
       }
 
       notification.error({
@@ -70,21 +78,19 @@ const Add = () => {
   const handleTreeSelectChange = (selectedValues, info) => {
     const selectedKeys = [];
 
-    // Helper function to traverse the tree and collect keys
     const traverseTree = (data) => {
       data.forEach((item) => {
         if (item.children) {
-          traverseTree(item.children); // Recursively process children
+          traverseTree(item.children);
         } else if (selectedValues.includes(item.value)) {
-          selectedKeys.push(item.value); // Add the value to the array
+          selectedKeys.push(item.value);
         }
       });
     };
 
-    // Call the helper function with your tree data
     traverseTree(permissionslist);
 
-    setSelectedPermissions(selectedKeys); // Update the state with the array
+    setSelectedPermissions(selectedKeys);
   };
 
   const tProps = {
@@ -101,7 +107,7 @@ const Add = () => {
     <div className="p-4">
       <div className="flex items-center gap-3">
         <Link
-          to={"/users/list"}
+          to={"/roles/list"}
           className="bg-[#FFFFFF1A] px-[6px] py-2 rounded"
         >
           <IoArrowBack size={20} />
@@ -109,7 +115,8 @@ const Add = () => {
         <div>
           <h1 className="font-normal text-xl leading-6">Add Roles</h1>
           <p className="font-normal text-xs leading-4 text-text-800">
-            This is the description text that will go under the title header
+            Create a new role and assign the appropriate permissions to control
+            access and actions within the system.
           </p>
         </div>
       </div>
@@ -130,42 +137,22 @@ const Add = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
+                  error={errors.name}
                 />
               </Col>
               <Col xs={24}>
                 <TreeSelect
                   {...tProps}
+                  value={selectedPermissions}
                   required
                   className={`block rounded px-2.5 pb-2.5 pt-5 w-full text-sm text-[#FFFFFFE5] bg-text-900 dark:bg-[#000000] border-0 border-b-2 border-b-[#000000] appearance-none focus:outline-none focus:ring-0 focus:border-[#000000] dark:focus:border-[#000000]`}
                 />
-                {/* <TextAreaComponent
-                      label="Role Description"
-                      name="description"
-                      onChange={handleInputChange}
-                      value={data?.description}
-                    /> */}
               </Col>
             </Row>
-            {/* <Row gutter={[20, 20]} className="mt-7">
-              <Col xs={24}>
-                <TextAreaComponent label={"About User..."} />
-              </Col>
-            </Row> */}
             <div className="flex items-center justify-end mt-7">
-              {/* <Link
-                loading={loading}
-                className="flex items-center justify-center w-[250px] h-[50px] rounded text-text-900 font-semibold text-[14px] leading-4 hover:bg-black hover:border-black hover:text-black"
-                style={{
-                  background:
-                    "linear-gradient(225.2deg, #FFC700 0.18%, #FF5C00 99.82%)",
-                  border: "1px solid transparent",
-                }}
-              >
-                Submit
-              </Link> */}
               <button
                 type="submit"
-                disabled={loading} // Disable the button while loading
+                disabled={loading}
                 className="flex items-center justify-center w-[250px] h-[50px] rounded text-text-900 font-semibold text-[14px] leading-4 hover:bg-black hover:border-black hover:text-black"
                 style={{
                   background:
@@ -173,12 +160,7 @@ const Add = () => {
                   border: "1px solid transparent",
                 }}
               >
-                {loading ? (
-                  <FaSpinner
-                    className="animate-spin"
-                    style={{ marginRight: "6px" }}
-                  />
-                ) : null}{" "}
+                {loading && <FaSpinner className="animate-spin mr-2" />}
                 Submit
               </button>
             </div>

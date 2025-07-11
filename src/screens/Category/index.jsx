@@ -1,51 +1,82 @@
-import { Button, Card, Input, Modal, notification, Spin, Table } from "antd";
+import {
+  Button,
+  Card,
+  Input,
+  Modal,
+  notification,
+  Pagination,
+  Spin,
+  Table,
+} from "antd";
 import React, { useEffect, useState } from "react";
 import { IoIosSearch } from "react-icons/io";
 import { Link } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import UserColumn from "../../HelperFunction/ColumnData/UserColumn";
 import CategoriesColumn from "../../HelperFunction/ColumnData/CategoriesColumn";
+import { useCallback } from "react";
+import { debounce } from "lodash";
 
 const Index = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [categoriesList, setCategoriesList] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
+
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [deletingCategory, setDeletingCategory] = useState(null);
-  const [filter, setFilter] = useState({
-    title: "",
-  });
+  const [search, setSearch] = useState("");
 
-  const fetchData = async () => {
-    const params = {
-      page: currentPage,
-      limit,
-      name: filter.title ? filter.title.trim() : "",
-    };
+  const fetchData = async (currentPage = page, searchTerm = search) => {
+    setLoading(true);
+    setNotFound(false);
+
     try {
+      const params = {
+        page: currentPage,
+        limit,
+        name: searchTerm.trim(),
+      };
+
       const response = await ApiService.get("/categories", params);
-      setCategoriesList(response.categories || []);
-      setTotalPages(response.totalPages || 1);
+      if (response?.categories?.length > 0) {
+        setCategoriesList(response.categories);
+        setTotalPages(response.totalPages);
+      } else {
+        setCategoriesList([]);
+        setNotFound(true);
+      }
     } catch (error) {
-      console.error("Error fetching categories:", error.message);
+      notification.error({
+        message: "Error",
+        description: "Failed to fetch categories.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, filter]);
+  }, [page]);
 
-  const updateFilter = (key, value) => {
-    setFilter((prevFilter) => ({
-      ...prevFilter,
-      [key]: value,
-    }));
+  const debouncedSearch = useCallback(
+    debounce((value) => {
+      setPage(1);
+      fetchData(1, value);
+    }, 500),
+    []
+  );
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    debouncedSearch(e.target.value);
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
+  const handlePageChange = (current) => {
+    setPage(current);
   };
 
   const openDeleteModal = (category) => {
@@ -78,7 +109,7 @@ const Index = () => {
     }
   };
 
-  const columns = CategoriesColumn({ openDeleteModal }); // Use the Columns component to get the column definitions
+  const columns = CategoriesColumn({ openDeleteModal });
 
   return (
     <div>
@@ -87,7 +118,9 @@ const Index = () => {
           <div className="mb-4 md:mb-0">
             <h1 className="font-normal text-xl leading-6">Categories</h1>
             <p className="font-normal text-xs leading-4 text-text-800">
-              This is the description text that will go under the title header
+              Manage and organize all your product or content categories here.
+              You can add, search, edit, or delete categories to keep your data
+              structured.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -105,8 +138,8 @@ const Index = () => {
                 name="search"
                 id="title"
                 className="flex-grow border-none outline-none bg-text-900 px-0 font-normal text-xs py-2 hover:bg-black"
-                value={filter.title}
-                onChange={(e) => updateFilter("title", e.target.value)}
+                value={search}
+                onChange={handleSearchChange}
               />
               <IoIosSearch size={14} className="text-[#FFFFFF80]" />
             </div>
@@ -121,25 +154,39 @@ const Index = () => {
               marginTop: "20px",
             }}
           >
-            {isLoading ? (
+            {loading ? (
               <div
                 className="flex justify-center items-center"
                 style={{ minHeight: "300px" }}
               >
                 <Spin size="large" />
               </div>
-            ) : (
+            ) : notFound ? (
               <div
-                className="table-container overflow-y-hidden"
-                style={{ overflowX: "auto" }}
+                className="flex justify-center items-center"
+                style={{ minHeight: "300px", color: "#fff" }}
               >
+                No categories found
+              </div>
+            ) : (
+              <>
                 <Table
                   columns={columns}
                   dataSource={categoriesList}
+                  rowKey="_id"
+                  pagination={false}
                   scroll={{ x: 1300 }}
-                  style={{ width: "100%" }}
                 />
-              </div>
+                <div className="flex justify-end mt-4">
+                  <Pagination
+                    current={page}
+                    pageSize={limit}
+                    total={totalPages * limit}
+                    onChange={handlePageChange}
+                    showSizeChanger={false}
+                  />
+                </div>
+              </>
             )}
           </Card>
         </div>
