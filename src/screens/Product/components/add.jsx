@@ -139,7 +139,6 @@ const Add = () => {
           placement: "topRight",
         });
 
-        // Reset form fields after successful submission
         setFormData({
           name: "",
           price: "",
