@@ -175,7 +175,7 @@ const Index = () => {
                   pagination={false}
                   scroll={{ x: 1300 }}
                 />
-                <div className="flex justify-end mt-4">
+                <div className="flex justify-end my-4">
                   <Pagination
                     current={page}
                     pageSize={limit}

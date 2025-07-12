@@ -2,6 +2,7 @@ import { Button } from "antd";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import NoImage from "../../assets/no-image/no-image-icon.png";
+import { renderImage } from "../../Utils/helper";
 
 const ProductColumn = ({ openDeleteModal }) => {
   const navigate = useNavigate(); // Use the navigate hook here
@@ -13,7 +14,7 @@ const ProductColumn = ({ openDeleteModal }) => {
       render: (record) => (
         <div className="flex items-center gap-2">
           <div className="w-[100px] h-[70px] overflow-hidden rounded-lg shadow-md border border-gray-300">
-            <img
+            {/* <img
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
               src={
                 record?.images[0]
@@ -21,7 +22,8 @@ const ProductColumn = ({ openDeleteModal }) => {
                   : NoImage
               }
               alt="Category"
-            />
+            /> */}
+            {renderImage(record?.images[0])}
           </div>
           <div>
             <h1 className="text-[#FFFFFFBF] font-medium text-sm leading-4">

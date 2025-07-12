@@ -20,7 +20,7 @@ import CategoryList from "../screens/Category/index";
 import CategoryAdd from "../screens/Category/components/add";
 import CategoryEdit from "../screens/Category/components/edit";
 import ProductList from "../screens/Product/index";
-import ProductAdd from "../screens/Product/components/add";
+import ProductAdd from "../screens/Product/components/Add/add";
 import ProductEdit from "../screens/Product/components/edit";
 import BrandList from "../screens/Brand/index";
 import BrandAdd from "../screens/Brand/components/add";
