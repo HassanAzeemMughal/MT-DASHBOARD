@@ -61,6 +61,15 @@ const Sidebar = () => {
           label: <Link to="/category/list">Category</Link>,
         },
         {
+          key: "/attributes",
+          icon: (
+            <span className="ant-menu-item-icon">
+              <FaUserGroup size={13} />
+            </span>
+          ),
+          label: <Link to="/attributes/list">Attributes</Link>,
+        },
+        {
           key: "/product",
           icon: (
             <span className="ant-menu-item-icon">

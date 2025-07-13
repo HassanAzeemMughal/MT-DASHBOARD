@@ -74,7 +74,7 @@ const BasicInfo = ({
             error={errors.status}
           />
         </Col>
-        <Col xs={24} sm={12} md={8} lg={8}>
+        <Col xs={24} sm={12} md={12} lg={12}>
           <TextAreaComponent
             className="h-[140px]"
             name="description"
@@ -83,7 +83,7 @@ const BasicInfo = ({
             onChange={handleInputChange}
           />
         </Col>
-        <Col xs={24} sm={12} md={8} lg={8}>
+        <Col xs={24} sm={12} md={12} lg={12}>
           <div className="card-body">
             <div className="dropzone needsclick p-0 border-2 border-dotted border-gray-300 rounded-lg p-5 text-center">
               <p className="h4 needsclick pt-4 mb-2">

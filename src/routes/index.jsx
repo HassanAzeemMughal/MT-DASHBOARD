@@ -26,6 +26,9 @@ import BrandList from "../screens/Brand/index";
 import BrandAdd from "../screens/Brand/components/add";
 import BrandEdit from "../screens/Brand/components/edit";
 import ForgotPassword from "../screens/Auth/ForgotPassword";
+import AttributeAdd from "../screens/Attributes/components/add";
+import AttributesList from "../screens/Attributes/index";
+import AttributesEdit from "../screens/Attributes/components/edit";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -52,6 +55,10 @@ const router = createBrowserRouter(
         <Route path="/product/list" element={<ProductList />} />
         <Route path="/product/add" element={<ProductAdd />} />
         <Route path="/product/edit/:id" element={<ProductEdit />} />
+
+        <Route path="/attributes/add" element={<AttributeAdd />} />
+        <Route path="/attributes/list" element={<AttributesList />} />
+        <Route path="/attributes/edit/:id" element={<AttributesEdit />} />
 
         <Route path="/brand/list" element={<BrandList />} />
         <Route path="/brand/add" element={<BrandAdd />} />

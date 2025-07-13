@@ -24,6 +24,7 @@ const Add = () => {
   const [previewImages, setPreviewImages] = useState([]);
   const [activeTab, setActiveTab] = useState("1");
   const [triedToNext, setTriedToNext] = useState(false);
+  const [productAttributes, setProductAttributes] = useState([]);
 
   const initialFormData = {
     name: "",
@@ -36,7 +37,6 @@ const Add = () => {
     description: "",
     status: "",
     categories: [],
-    specifications: [{ specification_name: "", specification_value: "" }],
     seo_title: "",
     seo_keywords: "",
     seo_description: "",
@@ -155,29 +155,6 @@ const Add = () => {
     }
   };
 
-  const handleAddSpecification = () => {
-    setFormData({
-      ...formData,
-      specifications: [
-        ...formData.specifications,
-        { specification_name: "", specification_value: "" },
-      ],
-    });
-  };
-
-  const handleRemoveSpecification = (index) => {
-    const newSpecs = [...formData.specifications];
-    newSpecs.splice(index, 1);
-    setFormData({ ...formData, specifications: newSpecs });
-  };
-
-  const handleSpecificationChange = (index, field, value) => {
-    const newSpecs = [...formData.specifications];
-    const key = field === "name" ? "specification_name" : "specification_value";
-    newSpecs[index][key] = value;
-    setFormData({ ...formData, specifications: newSpecs });
-  };
-
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
 
@@ -195,16 +172,8 @@ const Add = () => {
     formDataToSend.append("status", formData.status);
     formDataToSend.append("categories", formData.categories.join(","));
 
-    // Specifications
-    formDataToSend.append(
-      "specifications",
-      JSON.stringify(
-        formData.specifications.map((s) => ({
-          specification_name: s.specification_name,
-          specification_value: s.specification_value,
-        }))
-      )
-    );
+    // Append attributes as JSON string
+    formDataToSend.append("attributes", JSON.stringify(productAttributes));
 
     // Append SEO data
     formDataToSend.append("seo_title", formData.seo_title);
@@ -300,10 +269,20 @@ const Add = () => {
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-3 mt-5">
-        {tabs.map((tab) => (
-          <Tab key={tab.key} tab={tab} />
-        ))}
+      <div className="flex items-center justify-between gap-3 mt-5">
+        <div className="flex items-center gap-3">
+          {tabs.map((tab) => (
+            <Tab key={tab.key} tab={tab} />
+          ))}
+        </div>
+        <div>
+          <Link
+            to={"/attributes/add"}
+            className="bg-bg-900 px-4 md:px-9 py-2 rounded text-sm hover:text-white"
+          >
+            Add Attributes
+          </Link>
+        </div>
       </div>
 
       <div>
@@ -333,11 +312,10 @@ const Add = () => {
 
         {activeTab === "3" && (
           <Specification
-            specifications={formData.specifications}
-            handleSpecificationChange={handleSpecificationChange}
-            handleAddSpecification={handleAddSpecification}
-            handleRemoveSpecification={handleRemoveSpecification}
-            errors={triedToNext ? errors : {}}
+            productAttributes={productAttributes}
+            setProductAttributes={setProductAttributes}
+            customStyles={customStyles}
+            errors={errors}
           />
         )}
 
