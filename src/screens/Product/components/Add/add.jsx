@@ -186,7 +186,7 @@ const Add = () => {
 
     try {
       const response = await ApiService.post("/products/add", formDataToSend);
-      if (response.success === "true") {
+      if (response.success) {
         notification.success({
           message: "Success",
           description: response.message,
@@ -196,21 +196,50 @@ const Add = () => {
         setFormData(initialFormData);
         setPreviewImages([]);
         setUploadedImages([]);
-      } else if (response.success === "false") {
+      } else {
         notification.error({
           message: "Error",
           description: response.message,
           placement: "topRight",
         });
+        if (response.errors) {
+          Object.entries(response.errors).forEach(([field, errorMsg]) => {
+            notification.error({
+              message: `Error in ${field}`,
+              description: errorMsg,
+              placement: "topRight",
+            });
+          });
+        }
       }
     } catch (error) {
-      console.error("Error adding user:", error.message);
-      notification.error({
-        message: "Failed to Add product",
-        description:
-          "There was an error creating the product. Please try again.",
-        placement: "topRight",
-      });
+      // Try to parse backend error response
+      if (error.response?.data) {
+        const data = error.response.data;
+
+        notification.error({
+          message: "Failed to Add product",
+          description: data.message || "Something went wrong",
+          placement: "topRight",
+        });
+
+        if (data.errors) {
+          Object.entries(data.errors).forEach(([field, errorMsg]) => {
+            notification.error({
+              message: `Error in ${field}`,
+              description: errorMsg,
+              placement: "topRight",
+            });
+          });
+        }
+      } else {
+        notification.error({
+          message: "Failed to Add product",
+          description:
+            "There was an error creating the product. Please try again.",
+          placement: "topRight",
+        });
+      }
     } finally {
       setLoading(false);
     }
