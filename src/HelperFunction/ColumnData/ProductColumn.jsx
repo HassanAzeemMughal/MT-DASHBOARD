@@ -102,25 +102,6 @@ const ProductColumn = ({ openDeleteModal }) => {
       key: "price",
     },
     {
-      title: "Color",
-      render: (record) => (
-        <div className="flex items-center gap-2">
-          <div
-            style={{
-              backgroundColor: record.color, // Use the color code directly
-              width: "20px", // Small size for the color box
-              height: "20px", // Small size for the color box
-              borderRadius: "50%", // To make it a circle
-            }}
-          ></div>
-          <h1 className="text-[#FFFFFFBF] font-medium text-sm leading-4">
-            {record.color}
-          </h1>
-        </div>
-      ),
-      key: "color",
-    },
-    {
       title: "Status",
       render: (record) => {
         // Check the status and apply colors accordingly
