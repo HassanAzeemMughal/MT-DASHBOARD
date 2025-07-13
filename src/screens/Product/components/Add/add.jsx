@@ -4,7 +4,7 @@ import { IoArrowBack } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import ApiService from "../../../../services/ApiService";
 import useFormHandler from "../../../../HelperFunction/FormHandler";
-import BasicInfo from "./components/basicInfo";
+import BasicInfo from "./components/BasicInfo";
 import PricingInventory from "./components/PricingInventory";
 import Specification from "./components/Specification";
 import Seo from "./components/Seo";

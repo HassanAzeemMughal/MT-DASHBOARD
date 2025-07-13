@@ -4,8 +4,6 @@ import InputComponent from "../../../../../components/InputComponent";
 import TextAreaComponent from "../../../../../components/TextAreaComponent";
 import SelectComponent from "../../../../../components/SelectComponent";
 
-import { FaSpinner } from "react-icons/fa";
-
 const BasicInfo = ({
   formData,
   handleInputChange,
