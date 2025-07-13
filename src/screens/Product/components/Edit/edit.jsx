@@ -29,6 +29,7 @@ const Edit = () => {
   const [triedToNext, setTriedToNext] = useState(false);
   const [productAttributes, setProductAttributes] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [imagesToDelete, setImagesToDelete] = useState([]); // Add this state
 
   const initialFormData = {
     name: "",
@@ -144,7 +145,7 @@ const Edit = () => {
           status: product.status,
           categories: product.categories.map((c) => c._id),
           seo_title: product.seo.title || "",
-          seo_keywords: product.seo.keywords.map((c) => c) || "",
+          seo_keywords: product.seo?.keywords?.join(", ") || "",
           seo_description: product.seo.description || "",
         });
       }
@@ -174,6 +175,9 @@ const Edit = () => {
   const handleRemoveImage = (index) => {
     // Check if it's an existing image
     if (index < existingImages.length) {
+      const imageToDelete = existingImages[index];
+      setImagesToDelete((prev) => [...prev, imageToDelete]); // Track images to delete
+
       const newExisting = [...existingImages];
       newExisting.splice(index, 1);
       setExistingImages(newExisting);
@@ -229,6 +233,9 @@ const Edit = () => {
 
     // Append existing images that weren't removed
     formDataToSend.append("existingImages", existingImages.join(","));
+
+    // Append images to delete
+    formDataToSend.append("imagesToDelete", imagesToDelete.join(",")); // Add this
 
     // Append attributes
     formDataToSend.append("attributes", JSON.stringify(productAttributes));
