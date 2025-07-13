@@ -196,6 +196,8 @@ const Add = () => {
         setFormData(initialFormData);
         setPreviewImages([]);
         setUploadedImages([]);
+        setActiveTab("1");
+        setTriedToNext(false);
       } else {
         notification.error({
           message: "Error",
