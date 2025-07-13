@@ -56,8 +56,8 @@ const Add = () => {
         if (!formData.deliveryTime)
           errors.deliveryTime = "Delivery Time is required";
         if (!formData.status) errors.status = "Status is required";
-        if (previewImages.length === 0)
-          errors.images = "At least one image is required";
+        // if (previewImages.length === 0)
+        //   errors.images = "At least one image is required";
         break;
 
       case "2": // Pricing & Inventory
