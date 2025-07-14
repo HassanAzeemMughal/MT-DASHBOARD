@@ -13,6 +13,7 @@ const Add = () => {
   const [parentCategories, setParentCategories] = useState([]);
   const [uploadedImages, setUploadedImages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
   const [errors, setErrors] = useState({});
   const { formData, handleInputChange, handleSelectChange, setFormData } =
     useFormHandler(
@@ -26,6 +27,33 @@ const Add = () => {
       setErrors
     );
 
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Only image files are allowed.");
+      return;
+    }
+
+    // Clean up old URL
+    if (uploadedImages[0]) {
+      URL.revokeObjectURL(uploadedImages[0]);
+    }
+
+    // Create preview
+    const fileURL = URL.createObjectURL(file);
+    setUploadedImages([fileURL]);
+    setImageFile(file); // Store file for later upload
+  };
+
+  const handleRemoveImage = (index) => {
+    URL.revokeObjectURL(uploadedImages[index]);
+    setUploadedImages((prevImages) => prevImages.filter((_, i) => i !== index));
+    setImageFile(null);
+  };
+
   useEffect(() => {
     fetchParentCategories();
   }, []);
@@ -37,23 +65,6 @@ const Add = () => {
     } catch (error) {
       console.error("Error fetching parent categories:", error.message);
     }
-  };
-
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Clean up old URL
-    if (uploadedImages[0]) {
-      URL.revokeObjectURL(uploadedImages[0]);
-    }
-
-    const fileURL = URL.createObjectURL(file);
-    setUploadedImages([fileURL]);
-  };
-
-  const handleRemoveImage = (index) => {
-    setUploadedImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -70,20 +81,34 @@ const Add = () => {
 
     setLoading(true);
 
-    const formDataToSend = new FormData();
-    formDataToSend.append("title", formData.title);
-    formDataToSend.append("status", formData.status);
-    formDataToSend.append("description", formData.description);
-    formDataToSend.append("parent", formData.parentCategory);
-
-    if (uploadedImages.length > 0) {
-      const imageFile = document.getElementById("uploadInput").files[0];
-      if (imageFile) {
-        formDataToSend.append("image", imageFile);
-      }
-    }
-
     try {
+      let imageId = null;
+
+      // Upload image if exists
+      if (imageFile) {
+        const folder = "categories";
+        const response = await ApiService.uploadFile(
+          "/files/upload",
+          imageFile,
+          folder
+        );
+        imageId = response.data._id;
+      }
+
+      const formDataToSend = new FormData();
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("parent", formData.parentCategory);
+      formDataToSend.append("image", imageId);
+
+      // if (uploadedImages.length > 0) {
+      //   const imageFile = document.getElementById("uploadInput").files[0];
+      //   if (imageFile) {
+      //     formDataToSend.append("image", imageFile);
+      //   }
+      // }
+
       const response = await ApiService.post(
         "/categories/add",
         formDataToSend,
@@ -109,6 +134,11 @@ const Add = () => {
           parentCategory: "",
         });
         setUploadedImages([]);
+        setImageFile(null);
+
+        // Clear file input
+        const fileInput = document.getElementById("uploadInput");
+        if (fileInput) fileInput.value = "";
       } else {
         notification.error({
           message: "Error",
@@ -227,7 +257,7 @@ const Add = () => {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={handleImageUpload}
+                      onChange={handleFileChange}
                       multiple={false}
                     />
                   </div>

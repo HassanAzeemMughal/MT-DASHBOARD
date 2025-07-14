@@ -188,8 +188,9 @@ const Index = () => {
             )}
           </Card>
         </div>
+
         <Modal
-          title="Delete Confirmation"
+          title="Delete Product Confirmation"
           open={isDeleteModalVisible}
           onOk={handleDelete}
           onCancel={() => setIsDeleteModalVisible(false)}
@@ -197,9 +198,11 @@ const Index = () => {
           cancelText="Cancel"
           okButtonProps={{ danger: true }}
         >
-          <p>
-            Are you sure you want to delete{" "}
-            <strong>{deletingProduct?.name}</strong>?
+          <p>Are you sure you want to delete this product?</p>
+          <p className="font-bold mt-2 text-lg">{deletingProduct?.name}</p>
+          <p className="text-red-500 mt-2">
+            This action will permanently delete this product from your
+            inventory.
           </p>
         </Modal>
       </div>

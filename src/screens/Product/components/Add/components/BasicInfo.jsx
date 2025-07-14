@@ -9,12 +9,13 @@ const BasicInfo = ({
   handleInputChange,
   errors,
   handleSelectChange,
-  handleImageUpload,
   previewImages,
   handleRemoveImage,
   categories,
   handleCategoryChange,
   customStyles,
+  handleFileChange,
+  inputKey,
 }) => {
   return (
     <Card
@@ -97,12 +98,13 @@ const BasicInfo = ({
                 Browse Image
               </span>
               <input
+                key={inputKey}
                 id="uploadInput"
                 type="file"
                 accept="image/*"
                 multiple
                 className="hidden"
-                onChange={handleImageUpload}
+                onChange={handleFileChange}
               />
             </div>
             <div className="uploaded-images mt-4 flex flex-wrap gap-3">

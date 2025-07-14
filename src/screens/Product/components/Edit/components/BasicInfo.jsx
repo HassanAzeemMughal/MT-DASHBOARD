@@ -1,3 +1,4 @@
+// BasicInfo.jsx
 import { Card, Col, Row } from "antd";
 import Select from "react-select";
 import InputComponent from "../../../../../components/InputComponent";
@@ -9,7 +10,7 @@ const BasicInfo = ({
   handleInputChange,
   errors,
   handleSelectChange,
-  handleImageUpload,
+  handleFileChange,
   previewImages,
   handleRemoveImage,
   categories,
@@ -39,15 +40,17 @@ const BasicInfo = ({
           <Select
             isMulti
             className="bg-[#000000]"
-            options={categories} // Pass categories fetched from API
+            options={categories}
             value={categories.filter((cat) =>
               formData.categories.includes(cat.value)
-            )} // Set currently selected categories from formData
-            onChange={handleCategoryChange} // Handle changes
+            )}
+            onChange={handleCategoryChange}
             placeholder="Select Categories"
-            styles={customStyles} // Apply custom styles
-            error={errors.categories}
+            styles={customStyles}
           />
+          {errors.categories && (
+            <div className="text-red-500 text-xs mt-1">{errors.categories}</div>
+          )}
         </Col>
         <Col xs={24} sm={12} md={12} lg={12}>
           <InputComponent
@@ -102,39 +105,42 @@ const BasicInfo = ({
                 accept="image/*"
                 multiple
                 className="hidden"
-                onChange={handleImageUpload}
+                onChange={handleFileChange}
               />
             </div>
             <div className="uploaded-images mt-4 flex flex-wrap gap-3">
-              {previewImages.map((image, index) => (
-                <div
-                  key={index}
-                  className="image-preview relative"
-                  style={{
-                    width: "100px",
-                    height: "100px",
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <img
-                    src={image}
-                    alt={`Uploaded ${index}`}
-                    className="w-full h-full object-cover"
-                  />
-                  <span
-                    className="absolute top-0 right-0 m-1 bg-white border-0 rounded-full w-5 h-5 text-sm text-center cursor-pointer"
-                    onClick={() => handleRemoveImage(index)}
-                    style={{ backgroundColor: "red" }}
+              {previewImages.map((image, index) => {
+                console.log("Image URL:", image);
+                return (
+                  <div
+                    key={index}
+                    className="image-preview relative"
+                    style={{
+                      width: "100px",
+                      height: "100px",
+                      border: "1px solid #ccc",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
                   >
-                    ×
-                  </span>
-                </div>
-              ))}
+                    <img
+                      src={image}
+                      alt={`Preview ${index}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <span
+                      className="absolute top-0 right-0 m-1 bg-white border-0 rounded-full w-5 h-5 text-sm text-center cursor-pointer"
+                      onClick={() => handleRemoveImage(index)}
+                      style={{ backgroundColor: "red", color: "white" }}
+                    >
+                      ×
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </Col>

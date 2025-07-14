@@ -12,9 +12,11 @@ const ProductColumn = ({ openDeleteModal }) => {
     {
       title: "Product",
       render: (record) => (
-        <div className="flex items-center gap-2">
-          <div className="w-[100px] h-[70px] overflow-hidden rounded-lg shadow-md border border-gray-300">
-            {/* <img
+        console.log("====== Record:", record),
+        (
+          <div className="flex items-center gap-2">
+            <div className="w-[100px] h-[70px] overflow-hidden rounded-lg shadow-md border border-gray-300">
+              {/* <img
               className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
               src={
                 record?.images[0]
@@ -23,17 +25,18 @@ const ProductColumn = ({ openDeleteModal }) => {
               }
               alt="Category"
             /> */}
-            {renderImage(record?.images[0])}
+              {renderImage(record?.images[0]?.url)}
+            </div>
+            <div>
+              <h1 className="text-[#FFFFFFBF] font-medium text-sm leading-4">
+                {record.name}
+              </h1>
+              <p className="text-[#FFFFFF66] font-normal text-xs leading-3 pt-1">
+                {record.email}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-[#FFFFFFBF] font-medium text-sm leading-4">
-              {record.name}
-            </h1>
-            <p className="text-[#FFFFFF66] font-normal text-xs leading-3 pt-1">
-              {record.email}
-            </p>
-          </div>
-        </div>
+        )
       ),
       key: "product",
     },

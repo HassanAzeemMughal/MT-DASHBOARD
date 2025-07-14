@@ -1,3 +1,4 @@
+// Edit.jsx
 import { notification } from "antd";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IoArrowBack } from "react-icons/io5";
@@ -23,13 +24,14 @@ const Edit = () => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [errors, setErrors] = useState({});
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const [previewImages, setPreviewImages] = useState([]);
   const [activeTab, setActiveTab] = useState("1");
   const [triedToNext, setTriedToNext] = useState(false);
   const [productAttributes, setProductAttributes] = useState([]);
+
+  // Image states
   const [existingImages, setExistingImages] = useState([]);
-  const [imagesToDelete, setImagesToDelete] = useState([]); // Add this state
+  const [newImages, setNewImages] = useState([]);
+  const [imagesToDelete, setImagesToDelete] = useState([]);
 
   const initialFormData = {
     name: "",
@@ -49,6 +51,21 @@ const Edit = () => {
 
   const { formData, handleInputChange, handleSelectChange, setFormData } =
     useFormHandler(initialFormData, errors, setErrors);
+
+  // Calculate preview images
+  const previewImages = useMemo(() => {
+    console.log("Existing Images:", existingImages);
+
+    const deletedUrls = new Set(imagesToDelete.map((img) => img.url));
+
+    const existingPreviews = existingImages
+      .filter((img) => !deletedUrls.has(img.url))
+      .map((img) => img.url);
+
+    const newPreviews = newImages.map((obj) => obj.preview);
+
+    return [...existingPreviews, ...newPreviews];
+  }, [existingImages, newImages, imagesToDelete]);
 
   const getCurrentTabErrors = useCallback(() => {
     const errors = {};
@@ -119,13 +136,7 @@ const Edit = () => {
       const response = await ApiService.get(`/products/detail/${id}`);
       if (response.success) {
         const product = response.product;
-        console.log("Fetched product data:", product);
-        // Initialize existing images
-        const existingImageUrls = product.images.map(
-          (img) => `${backendPath}${img}`
-        );
-        setExistingImages(product.images);
-        setPreviewImages(existingImageUrls);
+        setExistingImages(product.images || []);
 
         // Initialize product attributes
         if (product.attributes) {
@@ -163,34 +174,65 @@ const Edit = () => {
     if (id) {
       fetchProductData();
     }
+
+    // Clean up object URLs on unmount
+    return () => {
+      newImages.forEach((image) => URL.revokeObjectURL(image.preview));
+    };
   }, [id]);
 
-  const handleImageUpload = (event) => {
-    const files = Array.from(event.target.files);
-    const imageUrls = files.map((file) => URL.createObjectURL(file));
-    setUploadedImages((prev) => [...prev, ...files]);
-    setPreviewImages((prev) => [...prev, ...imageUrls]);
+  const handleFileChange = (event) => {
+    const files = Array.from(event.target.files).filter((f) =>
+      f.type.startsWith("image/")
+    );
+
+    if (files.length === 0) {
+      alert("Only image files are allowed.");
+      return;
+    }
+
+    // Create preview URLs and store with files
+    const imageObjects = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setNewImages((prev) => [...prev, ...imageObjects]);
   };
 
   const handleRemoveImage = (index) => {
-    // Check if it's an existing image
-    if (index < existingImages.length) {
-      const imageToDelete = existingImages[index];
-      setImagesToDelete((prev) => [...prev, imageToDelete]); // Track images to delete
+    // Calculate how many existing images are visible
+    const visibleExistingCount = existingImages.length - imagesToDelete.length;
 
-      const newExisting = [...existingImages];
-      newExisting.splice(index, 1);
-      setExistingImages(newExisting);
+    if (index < visibleExistingCount) {
+      // Find the actual existing image at this position
+      let actualIndex = -1;
+      let count = 0;
+
+      for (let i = 0; i < existingImages.length; i++) {
+        if (!imagesToDelete.includes(existingImages[i])) {
+          if (count === index) {
+            actualIndex = i;
+            break;
+          }
+          count++;
+        }
+      }
+
+      if (actualIndex !== -1) {
+        const imageToDelete = existingImages[actualIndex];
+        setImagesToDelete((prev) => [...prev, imageToDelete]);
+      }
     } else {
-      // It's a newly uploaded image
-      const newIndex = index - existingImages.length;
-      setUploadedImages((prev) => prev.filter((_, i) => i !== newIndex));
-    }
+      // It's a new image
+      const newIndex = index - visibleExistingCount;
+      const removedImage = newImages[newIndex];
 
-    // Always update preview
-    const newPreviews = [...previewImages];
-    newPreviews.splice(index, 1);
-    setPreviewImages(newPreviews);
+      // Revoke object URL to free memory
+      URL.revokeObjectURL(removedImage.preview);
+
+      setNewImages((prev) => prev.filter((_, i) => i !== newIndex));
+    }
   };
 
   const handleNextTab = () => {
@@ -218,39 +260,50 @@ const Edit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
-    const formDataToSend = new FormData();
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("price", formData.price);
-    formDataToSend.append("discount", formData.discount || 0);
-    formDataToSend.append("deliveryTime", formData.deliveryTime);
-    formDataToSend.append("stock", formData.stock);
-    formDataToSend.append("stock_quantity", formData.stock_quantity);
-    formDataToSend.append("low_stock_alert", formData.low_stock_alert);
-    formDataToSend.append("description", formData.description);
-    formDataToSend.append("status", formData.status);
-    formDataToSend.append("categories", formData.categories.join(","));
-
-    // Append existing images that weren't removed
-    formDataToSend.append("existingImages", existingImages.join(","));
-
-    // Append images to delete
-    formDataToSend.append("imagesToDelete", imagesToDelete.join(",")); // Add this
-
-    // Append attributes
-    formDataToSend.append("attributes", JSON.stringify(productAttributes));
-
-    // Append SEO data
-    formDataToSend.append("seo_title", formData.seo_title);
-    formDataToSend.append("seo_keywords", formData.seo_keywords);
-    formDataToSend.append("seo_description", formData.seo_description);
-
-    // Append new images
-    uploadedImages.forEach((file) => {
-      formDataToSend.append("images", file);
-    });
-
     try {
+      // Upload new images
+      const uploadedImageIds = [];
+      for (const imageObj of newImages) {
+        const res = await ApiService.uploadFile(
+          "/files/upload",
+          imageObj.file,
+          "products"
+        );
+        if (res?.data?._id) uploadedImageIds.push(res.data._id);
+      }
+
+      const formDataToSend = new FormData();
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("price", formData.price);
+      formDataToSend.append("discount", formData.discount || 0);
+      formDataToSend.append("deliveryTime", formData.deliveryTime);
+      formDataToSend.append("stock", formData.stock);
+      formDataToSend.append("stock_quantity", formData.stock_quantity);
+      formDataToSend.append("low_stock_alert", formData.low_stock_alert);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("categories", formData.categories.join(","));
+
+      // Prepare remaining existing images
+      const remainingImages = existingImages.filter(
+        (img) => !imagesToDelete.includes(img)
+      );
+
+      formDataToSend.append(
+        "existingImages",
+        remainingImages.map((img) => img._id).join(",")
+      );
+      formDataToSend.append("imagesToDelete", imagesToDelete.join(","));
+      formDataToSend.append("images", uploadedImageIds.join(","));
+
+      // Append attributes
+      formDataToSend.append("attributes", JSON.stringify(productAttributes));
+
+      // Append SEO data
+      formDataToSend.append("seo_title", formData.seo_title);
+      formDataToSend.append("seo_keywords", formData.seo_keywords);
+      formDataToSend.append("seo_description", formData.seo_description);
+
       const response = await ApiService.put(
         `/products/update/${id}`,
         formDataToSend
@@ -352,7 +405,7 @@ const Edit = () => {
             handleInputChange={handleInputChange}
             errors={triedToNext ? errors : {}}
             handleSelectChange={handleSelectChange}
-            handleImageUpload={handleImageUpload}
+            handleFileChange={handleFileChange}
             previewImages={previewImages}
             handleRemoveImage={handleRemoveImage}
             categories={categories}

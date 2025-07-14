@@ -14,7 +14,9 @@ const Edit = () => {
   const backendPath = import.meta.env.VITE_BACKEND_URL;
   const [loading, setLoading] = useState(false);
   const [parentCategories, setParentCategories] = useState([]);
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [previewUrl, setPreviewUrl] = useState(null); // For new image preview
+  const [imageFile, setImageFile] = useState(null);
+  const [removeExistingImage, setRemoveExistingImage] = useState(false); // Flag to remove exist
 
   const { formData, handleInputChange, handleSelectChange, setFormData } =
     useFormHandler({
@@ -22,6 +24,7 @@ const Edit = () => {
       parentCategory: "",
       status: "",
       description: "",
+      image: null,
     });
   const { id } = useParams();
 
@@ -45,7 +48,6 @@ const Edit = () => {
           const response = await ApiService.get(`/categories/edit/${id}`);
           if (response.success) {
             const category = response.category;
-
             setFormData({
               title: category.title,
               parentCategory: category.parent ? category.parent._id : "",
@@ -76,19 +78,40 @@ const Edit = () => {
     }
   }, [id]);
 
-  const handleImageUpload = (event) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      const fileArray = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
-      );
-      setUploadedImages(fileArray.slice(0, 1));
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Only image files are allowed.");
+      return;
     }
+
+    // Clean up old preview URL
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    // Create preview and store file
+    const fileURL = URL.createObjectURL(file);
+    setPreviewUrl(fileURL);
+    setImageFile(file);
+
+    // Clear remove flag if new image is added
+    setRemoveExistingImage(false);
   };
 
-  // Handle removing an image from the uploaded list
-  const handleRemoveImage = (index) => {
-    setUploadedImages((prevImages) => prevImages.filter((_, i) => i !== index));
+  const handleRemoveImage = () => {
+    if (previewUrl) {
+      // Remove new image preview
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+      setImageFile(null);
+    } else if (formData.image) {
+      // Mark existing image for removal
+      setRemoveExistingImage(true);
+      setFormData((prev) => ({ ...prev, image: null }));
+    }
   };
 
   // Handle form submission
@@ -96,21 +119,43 @@ const Edit = () => {
     e.preventDefault();
     setLoading(true);
 
-    const formDataToSend = new FormData();
-    formDataToSend.append("title", formData.title);
-    formDataToSend.append("status", formData.status);
-    formDataToSend.append("description", formData.description);
-    formDataToSend.append("parent", formData.parentCategory); // Ensure you're sending the parent category as well
-
-    // Ensure you're sending the file under the correct field name "image"
-    if (uploadedImages.length > 0) {
-      const imageFile = document.getElementById("uploadInput").files[0];
-      if (imageFile) {
-        formDataToSend.append("image", imageFile); // The field name "image" should match the multer setup
-      }
-    }
-
     try {
+      let imageId = null;
+
+      // Handle image scenarios:
+      if (imageFile) {
+        // Upload new image
+        const folder = "categories";
+        const response = await ApiService.uploadFile(
+          "/files/upload",
+          imageFile,
+          folder
+        );
+        imageId = response.data._id;
+      } else if (!removeExistingImage && formData.image) {
+        // Keep existing image
+        imageId = formData.image._id;
+      }
+
+      const formDataToSend = new FormData();
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("parent", formData.parentCategory); // Ensure you're sending the parent category as well
+      if (imageId !== null) {
+        formDataToSend.append("image", imageId);
+      } else if (removeExistingImage) {
+        // Explicitly send null to remove image
+        formDataToSend.append("image", "null");
+      }
+      // Ensure you're sending the file under the correct field name "image"
+      // if (uploadedImages.length > 0) {
+      //   const imageFile = document.getElementById("uploadInput").files[0];
+      //   if (imageFile) {
+      //     formDataToSend.append("image", imageFile); // The field name "image" should match the multer setup
+      //   }
+      // }
+
       const response = await ApiService.put(
         `/categories/${id}`,
         formDataToSend
@@ -121,6 +166,10 @@ const Edit = () => {
           description: response.message,
           placement: "topRight",
         });
+        // Reset image states
+        setPreviewUrl(null);
+        setImageFile(null);
+        setRemoveExistingImage(false);
       } else {
         notification.error({
           message: "Error",
@@ -142,6 +191,8 @@ const Edit = () => {
       setLoading(false);
     }
   };
+
+  console.log("======formData", formData.image);
 
   return (
     <div className="p-4">
@@ -235,45 +286,45 @@ const Edit = () => {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={handleImageUpload}
+                      onChange={handleFileChange}
                       multiple={false} // Ensures only one image can be selected
                     />
                   </div>
                   <div className="uploaded-images mt-4 flex flex-wrap gap-3">
-                    {/* {uploadedImages.length > 0 && ( */}
-                    <div
-                      key={0}
-                      className="image-preview relative"
-                      style={{
-                        width: "100px",
-                        height: "100px",
-                        border: "1px solid #ccc",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      {uploadedImages.length > 0 ? (
-                        <img
-                          src={uploadedImages[0]}
-                          alt="Uploaded"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        renderImage(formData.image)
-                      )}
-
-                      <span
-                        className="absolute top-0 right-0 m-1 border-0 rounded-full w-5 h-5 text-sm text-center cursor-pointer"
-                        onClick={() => handleRemoveImage(0)}
-                        style={{ backgroundColor: "red" }}
+                    {previewUrl || (formData.image && !removeExistingImage) ? (
+                      <div
+                        key={0}
+                        className="image-preview relative"
+                        style={{
+                          width: "100px",
+                          height: "100px",
+                          border: "1px solid #ccc",
+                          borderRadius: "8px",
+                          overflow: "hidden",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
                       >
-                        ×
-                      </span>
-                    </div>
-                    {/* )} */}
+                        {previewUrl ? (
+                          <img
+                            src={previewUrl}
+                            alt="Uploaded"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          renderImage(formData.image.url)
+                        )}
+
+                        <span
+                          className="absolute top-0 right-0 m-1 border-0 rounded-full w-5 h-5 text-sm text-center cursor-pointer"
+                          onClick={handleRemoveImage}
+                          style={{ backgroundColor: "red" }}
+                        >
+                          ×
+                        </span>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </Col>
