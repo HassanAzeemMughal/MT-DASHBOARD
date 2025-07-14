@@ -13,7 +13,6 @@ import { IoIosSearch } from "react-icons/io";
 import { Link } from "react-router-dom";
 import ApiService from "../../services/ApiService";
 import ProductColumn from "../../HelperFunction/ColumnData/ProductColumn";
-import LoaderOverlay from "../../components/LoaderOverlay/LoaderOverlay";
 import { debounce } from "lodash";
 
 const Index = () => {
